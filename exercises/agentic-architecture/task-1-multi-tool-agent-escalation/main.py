@@ -33,10 +33,6 @@ SYSTEM_PROMPT = (
 )
 
 
-def log_tool_call(tool_name: str, tool_input: dict, result: dict) -> None:
-    print(f"  [tool] {tool_name}({tool_input}) -> {result}")
-
-
 if __name__ == "__main__":
     scenario = (
         sys.argv[1]
@@ -54,7 +50,6 @@ if __name__ == "__main__":
         tools=TOOLS,
         dispatcher=dispatch_tool,
         user_message=scenario,
-        hook=enforce_refund_policy,
-        on_tool_call=log_tool_call,
+        hook=enforce_refund_policy
     )
     print(f"\nAgent: {result.final_text}")
