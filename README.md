@@ -2,4 +2,4 @@
 
 According to this [exam guide](./wiki/exam-guide.pdf) claude suggested few exercises here, This repository contains the respective exercise implementation 
 
-# [Claude Exercises](./wiki/exercises.md)
+# [Claude Exercises](./wiki/exercises/README.md)
