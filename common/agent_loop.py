@@ -1,19 +1,28 @@
-"""Generic agentic tool-use loop (Domain 1.1).
+"""Generic agentic tool-use loop (Domain 1.1) with concurrent, fault-tolerant
+tool execution (Domain 5).
 
 Continues while stop_reason == "tool_use", terminates on "end_turn". Does
 not use an iteration cap as the primary stopping mechanism and does not
 parse assistant text to detect completion.
+
+Every tool_use block in a turn is dispatched concurrently — they may resolve
+in a different order than requested (Anthropic matches each tool_result to
+its tool_use by id, not by position, so this is safe) — and any dispatcher
+or hook exception is caught and converted into a structured tool_error
+result rather than propagating, so one failing tool call can never cause a
+sibling call's result, or the whole turn's tool_result block, to go missing.
 """
 
 import functools
 import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Optional
 
 from .bootstrap import find_repo_root
-from .errors import is_tool_error
+from .errors import is_tool_error, tool_error
 
 # Every exercise logs the full message transcript by default, one file per
 # run, always under <repo root>/logs/.
@@ -74,6 +83,44 @@ def _append_log(record: dict) -> None:
 def log_tool_call(tool_name: str, tool_input: dict, result: dict) -> None:
     print(f"  [tool] {tool_name}({tool_input}) -> {result}")
 
+
+def _execute_tool_block(block, dispatcher: ToolDispatcher, hook: Optional[ToolHook]) -> dict:
+    """Run one tool_use block, converting any dispatcher/hook exception into a
+    structured tool_error instead of letting it propagate and abort the run."""
+    try:
+        blocked = hook(block.name, block.input) if hook else None
+        result = blocked if blocked is not None else dispatcher(block.name, block.input)
+    except Exception as exc:
+        result = tool_error(
+            "transient",
+            True,
+            f"Tool '{block.name}' raised an unexpected error ({exc}) instead of returning "
+            "a result. Treat as transient and retry.",
+        )
+
+    log_tool_call(block.name, block.input, result)
+    return {
+        "type": "tool_result",
+        "tool_use_id": block.id,
+        "content": str(result),
+        "is_error": is_tool_error(result),
+    }
+
+
+def _run_tool_blocks(tool_blocks: list, dispatcher: ToolDispatcher, hook: Optional[ToolHook]) -> list[dict]:
+    """Dispatch every tool_use block from one turn concurrently.
+
+    Blocks can resolve in a different order than they were requested (e.g.
+    one subagent call is slower than another) — results are collected as
+    each future completes and matched back to its call via tool_use_id,
+    which is all the API requires; position in the returned list is
+    otherwise irrelevant.
+    """
+    with ThreadPoolExecutor(max_workers=len(tool_blocks)) as pool:
+        futures = [pool.submit(_execute_tool_block, block, dispatcher, hook) for block in tool_blocks]
+        return [future.result() for future in as_completed(futures)]
+
+
 def run_tool_loop(
     client,
     model: str,
@@ -108,24 +155,8 @@ def run_tool_loop(
         if response.stop_reason != "tool_use":
             break
 
-        tool_results = []
-        for block in response.content:
-            if block.type != "tool_use":
-                continue
-
-            blocked = hook(block.name, block.input) if hook else None
-            result = blocked if blocked is not None else dispatcher(block.name, block.input)
-
-            log_tool_call(block.name, block.input, result)
-
-            tool_results.append(
-                {
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": str(result),
-                    "is_error": is_tool_error(result),
-                }
-            )
+        tool_blocks = [block for block in response.content if block.type == "tool_use"]
+        tool_results = _run_tool_blocks(tool_blocks, dispatcher, hook)
         messages.append({"role": "user", "content": tool_results})
         _append_log(messages[-1])
 

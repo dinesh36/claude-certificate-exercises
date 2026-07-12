@@ -23,6 +23,7 @@ This repository contains exercise implementations for the [Claude Certified Arch
 | 3 | Structured Data Extraction Pipeline | 4, 5 |
 | 4 | Multi-Agent Research Pipeline | 1, 2, 5 |
 | 5 | Coordinator-Subagent Orchestration | 1 |
+| 6 | Subagent Invocation & Context Passing | 1 |
 
 ## Repository Layout
 
