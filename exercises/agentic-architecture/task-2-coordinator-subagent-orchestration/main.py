@@ -1,5 +1,5 @@
 """
-Exercise 5: Coordinator-Subagent Orchestration
+Exercise 2: Coordinator-Subagent Orchestration
 Domain: 1 (Agentic Architecture & Orchestration) — Task Statement 1.2
 
 A single coordinator loop (the reusable common/agent_loop.py tool-use loop,

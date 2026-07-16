@@ -12,6 +12,14 @@
 
 ---
 
+# Exercise
+A research coordinator helping decide whether an engineering org should stay remote-first, backed by a small tagged corpus on remote work's impact (productivity, tooling, wellbeing, security, onboarding).
+- The coordinator reads the question and decides for itself which topic tags actually matter, rather than always researching all five — a narrow question gets 1-2 tags, a broad one gets full coverage.
+- Each tag is researched by an isolated search subagent first at shallow depth; if the coordinator judges the gap matters, it re-dispatches the same tag with `deep_dive=true` for full coverage before synthesizing.
+- One tag is deliberately flaky (simulates a subagent crash on its first call) to demonstrate that a failed tool call becomes a retryable error rather than crashing the whole run, and that it doesn't block the other topics being researched at the same time.
+
+---
+
 # How to run
 See the repository root [README](../../../README.md) for one-time setup (uv project, `ANTHROPIC_API_KEY`).
 ```bash
@@ -27,19 +35,140 @@ The first (broad, default) scenario makes the coordinator dispatch all 5 availab
 ---
 
 # Implementation Info
-> A research coordinator split across `data.py` (mock source corpus, tagged by topic), `tools.py` (the two subagent-dispatch tools and their schemas), and `main.py` (system prompt + entry point), reusing the same `common/agent_loop.py` tool-use loop from Exercise 1 one level up as the coordinator's own loop, plus a new shared primitive, [`common/subagent.py`](../../../common/subagent.py), for isolated single-turn subagent calls.
+> A research coordinator split across `data.py` (mock source corpus, tagged by topic), `tools.py` (the two subagent-dispatch tools and their schemas), and `main.py` (system prompt + entry point), reusing the same `common/agent_loop.py` tool-use loop from Exercise 1 one level up as the coordinator's own loop, plus a new shared primitive, `common/subagent.py`, for isolated single-turn subagent calls.
 ## How each Task Info item is covered:
-- **Hub-and-spoke: coordinator manages all inter-subagent communication, error handling, and routing:** [`main.py:60-67`](./main.py#L60-L67) — the coordinator's own `run_tool_loop` call is the only place subagents are invoked from; every `dispatch_search_subagent`/`dispatch_analysis_subagent` call and result flows back through it, so no subagent ever talks to another subagent directly.
-- **Subagents operate with isolated context — no automatic inheritance of the coordinator's history:** [`common/subagent.py:13-21`](../../../common/subagent.py#L13-L21) — `run_subagent` opens a brand-new `messages=[...]` list and a subagent-specific `system` prompt on every call; it has no reference to the coordinator's own `messages`. [`tools.py:51-52`](./tools.py#L51-L52) and [`tools.py:71-73`](./tools.py#L71-L73) show the only context a subagent ever receives is what's explicitly built into `user_message`.
-- **Coordinator decomposition/delegation/aggregation and deciding which subagents to invoke based on query complexity:** [`main.py:27-47`](./main.py#L27-L47) — the system prompt instructs the model to read the question and choose only the relevant tags itself (not a fixed list), verified live: the broad scenario dispatches all 5 tags while the narrow onboarding-speed scenario dispatches only 1-2 (see "How to run" above and the per-tag `enum` boundary in [`tools.py:96-100`](./tools.py#L96-L100)).
-- **Risk of overly narrow decomposition leading to incomplete coverage:** [`main.py:32-36`](./main.py#L32-L36) — the prompt explicitly warns against covering too few tags on a broad question ("cover enough distinct tags that no major angle is left out"), and [`tools.py:83-92`](./tools.py#L83-L92)'s tool description repeats the same boundary condition at the tool level.
-- **Dynamically selecting which subagents to invoke rather than always routing through the full pipeline:** [`tools.py:96-100`](./tools.py#L96-L100) — `topic_tag` is an open per-call choice (not a batch parameter), so the coordinator issues exactly as many `dispatch_search_subagent` calls as it judges necessary, observed as 5 calls on the broad scenario vs. 1-2 on the narrow one.
-- **Partitioning research scope across subagents to minimize duplication:** [`main.py:35-36`](./main.py#L35-L36) — "Assign each subagent a single, non-overlapping tag so no two subagents research the same ground"; enforced structurally since each `dispatch_search_subagent` call takes exactly one `topic_tag`.
-- **Iterative refinement: evaluate synthesis for gaps, re-delegate with targeted queries, re-invoke until sufficient:** [`tools.py:34-60`](./tools.py#L34-L60) — every non-`deep_dive` call returns `partial: true` plus a `gap_hint`; [`main.py:37-41`](./main.py#L37-L41) instructs the coordinator to weigh each gap against the question and re-dispatch with `deep_dive=true` before finalizing, then run `dispatch_analysis_subagent` ([`tools.py:63-74`](./tools.py#L63-L74)) once coverage is non-partial — observed in both example runs as a first shallow pass followed by a targeted `deep_dive=true` pass on the tags that mattered.
-- **Routing all subagent communication through the coordinator for observability, error handling, and controlled information flow:** [`tools.py:135-145`](./tools.py#L135-L145) — `build_dispatcher` binds the client/model into the single `dispatch_tool` closure passed to `run_tool_loop`, so every subagent call is dispatched, logged, and error-shaped (`common.errors.tool_error`, e.g. [`tools.py:35-40`](./tools.py#L35-L40) for an unknown tag) in exactly one place — subagents cannot be reached any other way. As of this exercise that single choke point is also concurrent and fault-tolerant, covered next.
+- **Hub-and-spoke: coordinator manages all inter-subagent communication, error handling, and routing** — `main.py`
+
+  ```python
+  result = run_tool_loop(
+      client=client,
+      model=DEFAULT_MODEL,
+      system=SYSTEM_PROMPT,
+      tools=TOOLS,
+      dispatcher=build_dispatcher(client, DEFAULT_MODEL),
+      user_message=scenario,
+  )
+  ```
+
+  The coordinator's own `run_tool_loop` call is the only place subagents are invoked from; every `dispatch_search_subagent`/`dispatch_analysis_subagent` call and result flows back through it, so no subagent ever talks to another subagent directly.
+
+- **Subagents operate with isolated context — no automatic inheritance of the coordinator's history** — `common/subagent.py`, `tools.py`
+
+  ```python
+  def run_subagent(client, model, system, user_message, max_tokens=1024) -> str:
+      response = client.messages.create(
+          model=model, max_tokens=max_tokens, system=system,
+          messages=[{"role": "user", "content": user_message}],
+      )
+      return "".join(block.text for block in response.content if block.type == "text")
+  ```
+
+  `run_subagent` opens a brand-new `messages=[...]` list and a subagent-specific `system` prompt on every call, with no reference to the coordinator's own `messages`; `tools.py`'s `_dispatch_search_subagent`/`_dispatch_analysis_subagent` show the only context a subagent ever receives is what's explicitly built into `user_message`.
+
+- **Coordinator decomposition/delegation/aggregation and deciding which subagents to invoke based on query complexity** — `main.py`
+
+  ```python
+  "Read the user's question and decide which tags are actually relevant to "
+  "it: for a narrow question, dispatch only the one or two tags that "
+  "matter; for a broad question, cover enough distinct tags that no major "
+  "angle is left out. Assign each subagent a single, non-overlapping tag "
+  "so no two subagents research the same ground.\n\n"
+  ```
+
+  The system prompt instructs the model to read the question and choose only the relevant tags itself (not a fixed list), verified live: the broad scenario dispatches all 5 tags while the narrow onboarding-speed scenario dispatches only 1-2 (see "How to run" above).
+
+- **Risk of overly narrow decomposition leading to incomplete coverage** — `main.py`, `tools.py`
+
+  ```python
+  "for a broad question, cover enough distinct tags that no major angle is left out."
+  ```
+
+  The prompt explicitly warns against covering too few tags on a broad question, and `tools.py`'s `dispatch_search_subagent` tool description repeats the same boundary condition at the tool level.
+
+- **Dynamically selecting which subagents to invoke rather than always routing through the full pipeline** — `tools.py`
+
+  ```python
+  "topic_tag": {
+      "type": "string",
+      "enum": TOPIC_TAGS,
+      "description": "The single topic to research in this call.",
+  },
+  ```
+
+  `topic_tag` is an open per-call choice (not a batch parameter), so the coordinator issues exactly as many `dispatch_search_subagent` calls as it judges necessary, observed as 5 calls on the broad scenario vs. 1-2 on the narrow one.
+
+- **Partitioning research scope across subagents to minimize duplication** — `main.py`
+
+  ```python
+  "Assign each subagent a single, non-overlapping tag "
+  "so no two subagents research the same ground.\n\n"
+  ```
+
+  Enforced structurally too, since each `dispatch_search_subagent` call takes exactly one `topic_tag`.
+
+- **Iterative refinement: evaluate synthesis for gaps, re-delegate with targeted queries, re-invoke until sufficient** — `tools.py`, `main.py`
+
+  ```python
+  result = {"topic_tag": topic_tag, "summary": summary, "partial": not deep_dive}
+  if not deep_dive:
+      result["gap_hint"] = (
+          f"Only {len(visible)} of {len(snippets)} known sources on '{topic_tag}' were searched. "
+          "Call again with deep_dive=true if this topic is central to the user's question."
+      )
+  ```
+
+  Every non-`deep_dive` call returns `partial: true` plus a `gap_hint`; the system prompt instructs the coordinator to weigh each gap against the question and re-dispatch with `deep_dive=true` before finalizing, then run `dispatch_analysis_subagent` once coverage is non-partial — observed in both example runs as a first shallow pass followed by a targeted `deep_dive=true` pass on the tags that mattered.
+
+- **Routing all subagent communication through the coordinator for observability, error handling, and controlled information flow** — `tools.py`
+
+  ```python
+  def build_dispatcher(client, model: str):
+      def dispatch_tool(tool_name: str, tool_input: dict) -> dict:
+          if tool_name == "dispatch_search_subagent":
+              return _dispatch_search_subagent(client, model, **tool_input)
+          if tool_name == "dispatch_analysis_subagent":
+              return _dispatch_analysis_subagent(client, model, **tool_input)
+          return tool_error("validation", False, f"Unknown tool '{tool_name}'.")
+      return dispatch_tool
+  ```
+
+  `build_dispatcher` binds the client/model into the single `dispatch_tool` closure passed to `run_tool_loop`, so every subagent call is dispatched, logged, and error-shaped (`common.errors.tool_error`) in exactly one place — subagents cannot be reached any other way. As of this exercise that single choke point is also concurrent and fault-tolerant, covered next.
 
 ## Concurrent dispatch and tool-call fault tolerance (shared infra, `common/agent_loop.py`)
 A coordinator that decomposes a query into several subagent calls needs two things the original Exercise 1 loop didn't have to worry about (one call at a time, one dispatcher that never raised): tool calls that resolve at different speeds, and a dispatcher (an isolated Claude subagent call) that can genuinely fail. Both were added to the shared loop rather than duplicated per exercise, since every exercise reusing `run_tool_loop` benefits:
-- **Concurrent execution, matched by id rather than order:** [`common/agent_loop.py:110-121`](../../../common/agent_loop.py#L110-L121) — `_run_tool_blocks` submits every `tool_use` block from a turn to a `ThreadPoolExecutor` at once and collects results via `as_completed`, so a slower subagent call never blocks a faster one; each result still carries its own `tool_use_id` ([`common/agent_loop.py:104`](../../../common/agent_loop.py#L104)), which is what the Anthropic API actually uses to match a `tool_result` back to its `tool_use` — not array position. Observed live: in the broad-scenario log the 5 `dispatch_search_subagent` calls complete in `security_risks, collaboration_tools, employee_wellbeing, onboarding_challenges, productivity` order — not declaration order — because they genuinely ran concurrently.
-- **A raised exception becomes a structured, retryable error instead of crashing the run:** [`common/agent_loop.py:87-99`](../../../common/agent_loop.py#L87-L99) — `_execute_tool_block` wraps the hook/dispatcher call in `try/except`; any exception is converted via `common.errors.tool_error("transient", True, ...)` rather than propagating, so the run always produces a `tool_result` for every `tool_use_id` it received (the API requires exactly one) even when a subagent crashes outright.
-- **Demo of the failure path:** [`data.py`](./data.py)'s `FLAKY_TOPIC_TAG`/`_flaky_attempts` and [`tools.py:42-46`](./tools.py#L42-L46) make the first `dispatch_search_subagent(topic_tag="security_risks")` call raise `RuntimeError` unconditionally (simulating a subagent-side crash, not a tool-returned error dict) — [`main.py:45-46`](./main.py#L45-L46)'s system prompt instructs the coordinator to retry a transient error once, which is exactly what happens in the default broad-scenario run: the first `security_risks` call comes back as a `transient`/retryable error, the coordinator re-issues the identical call, and it succeeds.
+- **Concurrent execution, matched by id rather than order** — `common/agent_loop.py`
+
+  ```python
+  def _run_tool_blocks(tool_blocks, dispatcher, hook):
+      with ThreadPoolExecutor(max_workers=len(tool_blocks)) as pool:
+          futures = [pool.submit(_execute_tool_block, block, dispatcher, hook) for block in tool_blocks]
+          return [future.result() for future in as_completed(futures)]
+  ```
+
+  `_run_tool_blocks` submits every `tool_use` block from a turn to a `ThreadPoolExecutor` at once and collects results via `as_completed`, so a slower subagent call never blocks a faster one; each result still carries its own `tool_use_id`, which is what the Anthropic API actually uses to match a `tool_result` back to its `tool_use` — not array position. Observed live: in the broad-scenario log the 5 `dispatch_search_subagent` calls complete in `security_risks, collaboration_tools, employee_wellbeing, onboarding_challenges, productivity` order — not declaration order — because they genuinely ran concurrently.
+
+- **A raised exception becomes a structured, retryable error instead of crashing the run** — `common/agent_loop.py`
+
+  ```python
+  def _execute_tool_block(block, dispatcher, hook):
+      try:
+          blocked = hook(block.name, block.input) if hook else None
+          result = blocked if blocked is not None else dispatcher(block.name, block.input)
+      except Exception as exc:
+          result = tool_error("transient", True, f"Tool '{block.name}' raised an unexpected error ({exc}) ...")
+      ...
+  ```
+
+  `_execute_tool_block` wraps the hook/dispatcher call in `try/except`; any exception is converted into a structured `tool_error` rather than propagating, so the run always produces a `tool_result` for every `tool_use_id` it received (the API requires exactly one) even when a subagent crashes outright.
+
+- **Demo of the failure path** — `data.py`, `tools.py`, `main.py`
+
+  ```python
+  if topic_tag == FLAKY_TOPIC_TAG:
+      attempts = _flaky_attempts.get(topic_tag, 0)
+      _flaky_attempts[topic_tag] = attempts + 1
+      if attempts == 0:
+          raise RuntimeError(f"simulated subagent network timeout while searching '{topic_tag}'")
+  ```
+
+  `data.py`'s `FLAKY_TOPIC_TAG`/`_flaky_attempts` and this check in `tools.py` make the first `dispatch_search_subagent(topic_tag="security_risks")` call raise `RuntimeError` unconditionally (simulating a subagent-side crash, not a tool-returned error dict) — `main.py`'s system prompt instructs the coordinator to retry a transient error once, which is exactly what happens in the default broad-scenario run: the first `security_risks` call comes back as a `transient`/retryable error, the coordinator re-issues the identical call, and it succeeds.

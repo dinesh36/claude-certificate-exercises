@@ -16,13 +16,13 @@ Before writing anything, resolve:
 - **Domain(s) covered** — the Domains column for that row. If the user is defining a brand-new exercise, ask which Task Statement(s) (`X.Y`) it targets.
 - **Task statement text** — read the exact `### Task Statement X.Y: ...` heading plus its `Knowledge of` / `Skills in` bullets from `wiki/exercises/<domain-slug>.md` for every domain covered. Quote these verbatim later — do not paraphrase.
 
-## 2. Pick a fresh scenario — never reuse a prior exercise's concept
+## 2. Propose scenario options and confirm with the user before building anything
 
-Structure (file split, `common/` reuse, README shape) stays identical across exercises. The **scenario** — the fictional domain the agent/tools operate in, e.g. task-1's electronics-retailer customer-support agent — must be new every time.
+Structure (file split, `common/` reuse, README shape) stays identical across exercises. The **scenario** — the fictional domain the agent/tools operate in, e.g. task-1's electronics-retailer customer-support agent — must be new every time, and the specific choice is the user's to make, not yours to assume.
 
-- Survey what's already been used: `grep -rl "^Exercise" exercises/*/*/main.py` won't work directly — instead read the module docstring of every existing `exercises/*/*/main.py` (e.g. `head -n 12 exercises/*/*/main.py`) and note each one's scenario/domain (customer support, order refunds, etc.).
-- Choose a scenario for the new exercise that is clearly distinct from all of those — a different industry, workflow, and cast of tools/data, not just a renamed copy (e.g. don't ship "customer support for a software subscription" right after "customer support for electronics" — that's the same idea with new nouns). Pick something that still naturally exercises every `Knowledge of`/`Skills in` bullet for the covered task statement(s); the scenario is flavor, the bullets are the requirement.
-- If you're short on ideas, draw from varied domains: incident/on-call response, travel booking, healthcare appointment scheduling, DevOps deployment approval, library/inventory management, hiring/recruiting pipeline, legal document review, restaurant reservations, fitness coaching, IoT device fleet management, financial trading compliance, content moderation. Don't reuse one already present in the repo.
+- Survey what's already been used first: read the module docstring of every existing `exercises/*/*/main.py` (e.g. `head -n 12 exercises/*/*/main.py`) and note each one's scenario (customer support/refunds, remote-work research, trip planning, etc.). Never propose one of these, and never propose a thin reskin of one (e.g. don't propose "customer support for a software subscription" alongside "customer support for electronics" — that's the same idea with new nouns).
+- Draft 3-4 candidate scenarios for the covered task statement(s), each from a genuinely different industry/workflow (draw from: incident/on-call response, healthcare appointment scheduling, DevOps deployment approval, library/inventory management, hiring/recruiting, restaurant reservations, fitness coaching, IoT device fleet management, financial trading compliance, content moderation, product-review research, or similar — anything not already used in the repo). Each candidate must still naturally exercise every `Knowledge of`/`Skills in` bullet for the covered task statement(s); the scenario is flavor, the bullets are the requirement.
+- Present the candidates to the user with `AskUserQuestion` — one question, one option per candidate, each option's `description` naming the concrete document/data set, subagent or tool breakdown, and any fork/divergent-output structure so the user can tell the options apart at a glance (see task-3's product-review/restaurant/hiring/trip-planner options for the shape to match). Mark your own top pick "(Recommended)" but let the user choose. Do not scaffold any files until they answer.
 - Carry the chosen scenario through consistently: the mock data (`data.py`), tool names/descriptions (`tools.py`), any policy hook (`policy.py`), and the system prompt (`main.py`) should all read as one coherent scenario, not a mashup.
 
 ## 3. Compute the folder path
@@ -56,7 +56,7 @@ If the exercise needs a genuinely new reusable primitive (e.g. multi-agent coord
 
 <readme_template>
   <purpose>
-    The README.md is the graded artifact: it proves, with file/line citations, that every Knowledge-of and Skills-in bullet for the covered task statement(s) is actually implemented. A reviewer should be able to open the README and jump straight to the code satisfying each bullet.
+    The README.md is the graded artifact: it proves, with real code snippets, that every Knowledge-of and Skills-in bullet for the covered task statement(s) is actually implemented. A reviewer should be able to open the README and see the exact code satisfying each bullet without needing to open the source files.
   </purpose>
 
   <section id="1" name="task_statement_header">
@@ -72,7 +72,19 @@ If the exercise needs a genuinely new reusable primitive (e.g. multi-agent coord
 
   <separator>---</separator>
 
-  <section id="2" name="how_to_run">
+  <section id="2" name="exercise_brief">
+    <format>
+# Exercise
+&lt;1-2 sentences: what the exercise's fictional scenario is and what business logic it implements&gt;
+- &lt;bullet, if needed: a specific mechanic worth calling out&gt;
+- &lt;bullet, if needed: another specific mechanic worth calling out&gt;
+    </format>
+    <rule>This is a plain-language orientation for a human reader, written before they've looked at any code — no file references, no code, no task-statement jargon. State the scenario (what domain/business is this pretending to be) and what it actually does, in 1-2 sentences; add bullets only for mechanics specific enough that "what the exercise does" would be incomplete without them (e.g. a policy threshold, a deliberately-flaky demo path, a fork into divergent outputs). Skip bullets entirely if the 1-2 sentences already say enough.</rule>
+  </section>
+
+  <separator>---</separator>
+
+  <section id="3" name="how_to_run">
     <format>
 # How to run
 See the repository root [README](../../../README.md) for one-time setup (uv project, `ANTHROPIC_API_KEY`).
@@ -85,14 +97,20 @@ uv run exercises/&lt;domain-slug&gt;/task-&lt;N&gt;-&lt;slug&gt;/main.py
 
   <separator>---</separator>
 
-  <section id="3" name="implementation_info">
+  <section id="4" name="implementation_info">
     <format>
 # Implementation Info
 &gt; One or two sentences: which file covers which concern.
 ## How each Task Info item is covered:
-- **&lt;short label for one Knowledge-of or Skills-in bullet&gt;:** [`file.py:L-L`](./file.py#LX-LY) — one sentence on what those lines do and how they satisfy the bullet.
+- **&lt;short label for one Knowledge-of or Skills-in bullet&gt;** — `&lt;file.py&gt;`
+
+  ```python
+  &lt;minimal snippet — just the lines that satisfy this bullet&gt;
+  ```
+
+  &lt;one sentence on how the snippet satisfies the bullet&gt;
     </format>
-    <rule>Every bullet from every "Knowledge of" and "Skills in" list quoted in section 1 must have exactly one corresponding line here, in the same order. Cite real file paths and real line ranges (relative links; use `../../../common/...` for shared code) — re-read the file after writing it to confirm the cited lines still match, since edits shift line numbers.</rule>
+    <rule>Every bullet from every "Knowledge of" and "Skills in" list quoted in section 1 must have exactly one corresponding entry here, in the same order. Cite the file by name only (`tools.py`, `../../../common/agent_loop.py`, etc.) — never a line number or line-range link. Line numbers drift as soon as any file in the repo is edited again (including shared `common/` files touched by a later exercise), which silently breaks every prior README that pointed at a line range; a bare filename never goes stale. Paste the actual snippet (copy it from the real file, don't paraphrase or reconstruct it from memory) and trim it to just the lines that demonstrate the bullet — a few lines, not the whole function, unless the whole function is genuinely that short.</rule>
   </section>
 </readme_template>
 
@@ -102,4 +120,4 @@ If this exercise is not yet a row in `CLAUDE.md`'s Exercises table, append it (n
 
 ## 7. Verify
 
-Run `uv run exercises/<domain-slug>/task-<N>-<slug>/main.py` from the repo root and confirm it executes end to end (or report exactly why it can't — e.g. missing `ANTHROPIC_API_KEY`). Then re-open the written README.md and check every cited line range still points at the right code.
+Run `uv run exercises/<domain-slug>/task-<N>-<slug>/main.py` from the repo root and confirm it executes end to end (or report exactly why it can't — e.g. missing `ANTHROPIC_API_KEY`). Then re-open the written README.md and check every pasted snippet still matches the real file verbatim.
