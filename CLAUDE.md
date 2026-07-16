@@ -24,6 +24,7 @@ This repository contains exercise implementations for the [Claude Certified Arch
 | 4 | Multi-Agent Research Pipeline | 1, 2, 5 |
 | 5 | Coordinator-Subagent Orchestration | 1 |
 | 6 | Subagent Invocation & Context Passing | 1 |
+| 7 | IT Access Helpdesk (Multi-Step Enforcement & Handoff) | 1 |
 
 ## Repository Layout
 
