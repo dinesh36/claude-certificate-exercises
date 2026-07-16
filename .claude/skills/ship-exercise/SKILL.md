@@ -66,13 +66,18 @@ Runs the git/GitHub side of landing one exercise's work: branch → commit → P
   gh pr merge <PR> --squash --delete-branch
   ```
 - If the user wants a merge commit instead of squash, use `--merge` in place of `--squash`.
+- `--delete-branch` removes both the remote branch and (if you're on it) your local branch, and typically leaves you checked out on `master` already — confirm with `git branch --show-current` rather than assuming you need to switch.
 
-## 8. Sync local master back up
+## 8. Pull master again after merging
 
-- `git checkout master`
-- `git pull origin master` — a plain pull, not `--rebase`, since `master` should only ever fast-forward here (the merge that just landed is the only new commit).
-- `git branch -d exercise/task-<N>-<kebab-slug>` to remove the now-merged local branch.
+- `git fetch origin --prune` (the `--prune` clears any now-deleted branch refs, like the one `--delete-branch` just removed remotely).
+- Try the clean path first: `git checkout master` then `git pull origin master`. If this fast-forwards, you're done — this is what happens every time once a PR is the *only* way changes reach `master`.
+- If the pull refuses to fast-forward, local `master` has commits that were never part of this PR's branch (e.g. leftover direct-to-`master` commits from before this workflow was adopted — see step 3's guard). Do not merge or rebase past this blindly:
+  1. Run `git log origin/master..master` and confirm every commit it lists is one whose content is already fully captured in the branch/PR you just merged (check by diffing or recalling what you committed in step 4) — not unrelated, un-shipped work.
+  2. Only once confirmed, and only with `git status` clean, run `git reset --hard origin/master` to drop those superseded local-only commits and land exactly on the squash commit that's now on `origin/master`.
+  3. If any commit in that list is NOT already reflected in the merged PR, stop and ask the user — do not discard work that only exists locally.
+- Verify at the end with `git log --oneline -1` that local `master` now matches `origin/master`'s tip exactly.
 
 ## 9. Report
 
-Confirm to the user: the PR URL, which merge strategy was used, and that local `master` is up to date and the feature branch is gone both locally and (via `--delete-branch`) on the remote.
+Confirm to the user: the PR URL, which merge strategy was used, whether the local/remote feature branch needed manual cleanup or `--delete-branch` handled it, and that local `master` now matches `origin/master`'s tip exactly (name the commit hash).
