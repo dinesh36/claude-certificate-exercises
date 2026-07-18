@@ -7,18 +7,25 @@ parse assistant text to detect completion.
 
 Every tool_use block in a turn is dispatched concurrently — they may resolve
 in a different order than requested (Anthropic matches each tool_result to
-its tool_use by id, not by position, so this is safe) — and any dispatcher
-or hook exception is caught and converted into a structured tool_error
-result rather than propagating, so one failing tool call can never cause a
-sibling call's result, or the whole turn's tool_result block, to go missing.
+its tool_use by id, not by position, so this is safe) — and any tool
+implementation or hook exception is caught and converted into a structured
+tool_error result rather than propagating, so one failing tool call can
+never cause a sibling call's result, or the whole turn's tool_result block,
+to go missing.
 
-Two hook points bracket every tool call (Domain 1.5): `hook` runs before
+Two hook points bracket every tool call (Domain 1.5): `pre_hook` runs before
 dispatch and can block it outright (PreToolUse-style — deterministic policy
 enforcement, e.g. refusing a call above a threshold); `post_hook` runs after
 a successful dispatch and can transform the result before the model ever
 sees it (PostToolUse-style — e.g. normalizing heterogeneous timestamp/status
 formats from different tools into one shape). Both are optional and
 independent of each other.
+
+`run_tool_loop`'s `tools` argument is a list of `{"schema": ..., "implementation": ...}`
+entries (Domain 2) — the single `TOOLS` export every task's tools.py
+provides. This module extracts the schemas to send to the Anthropic API and
+builds its own internal name -> implementation map to dispatch tool_use
+blocks directly; callers never construct or pass around a separate dispatcher.
 """
 
 import functools
@@ -32,26 +39,22 @@ from typing import Callable, Optional
 from .bootstrap import find_repo_root
 from .errors import is_tool_error, tool_error
 
-# Every exercise logs the full message transcript by default, one file per
+# Every task logs the full message transcript by default, one file per
 # run, always under <repo root>/logs/.
 LOG_DIR_NAME = "logs"
 
-# (tool_name, tool_input) -> result payload (dict). Raise nothing — return a
-# common.errors.tool_error(...) dict on failure instead.
-ToolDispatcher = Callable[[str, dict], dict]
-
 # (tool_name, tool_input) -> error dict to short-circuit execution, or None
-# to let the dispatcher run the tool normally. Used for programmatic policy
+# to let the tool implementation run normally. Used for programmatic policy
 # hooks (e.g. blocking a refund above a threshold) that must be enforced
 # deterministically rather than left to the model's judgment. PreToolUse-style.
-ToolHook = Callable[[str, dict], Optional[dict]]
+ToolPreHook = Callable[[str, dict], Optional[dict]]
 
-# (tool_name, tool_input, result) -> result, run on every successful
-# dispatch to transform the raw tool output before the model sees it (e.g.
-# normalizing a Unix timestamp or a numeric status code from one "tool" and
-# an ISO 8601 timestamp or string status from another into one consistent
-# shape). Never called on a hook-blocked or exception-derived tool_error
-# result — those already have a fixed, stable shape. PostToolUse-style.
+# (tool_name, tool_input, result) -> result, run on every successful call to
+# transform the raw tool output before the model sees it (e.g. normalizing a
+# Unix timestamp or a numeric status code from one "tool" and an ISO 8601
+# timestamp or string status from another into one consistent shape). Never
+# called on a hook-blocked or exception-derived tool_error result — those
+# already have a fixed, stable shape. PostToolUse-style.
 ToolPostHook = Callable[[str, dict, dict], dict]
 
 
@@ -97,18 +100,25 @@ def log_tool_call(tool_name: str, tool_input: dict, result: dict) -> None:
 
 
 def _execute_tool_block(
-    block, dispatcher: ToolDispatcher, hook: Optional[ToolHook], post_hook: Optional[ToolPostHook] = None
+    block,
+    implementations: dict[str, Callable[..., dict]],
+    pre_hook: Optional[ToolPreHook],
+    post_hook: Optional[ToolPostHook] = None,
 ) -> dict:
-    """Run one tool_use block, converting any dispatcher/hook exception into a
+    """Run one tool_use block, converting any implementation/hook exception into a
     structured tool_error instead of letting it propagate and abort the run."""
     try:
-        blocked = hook(block.name, block.input) if hook else None
+        blocked = pre_hook(block.name, block.input) if pre_hook else None
         if blocked is not None:
             result = blocked
         else:
-            result = dispatcher(block.name, block.input)
-            if post_hook and not is_tool_error(result):
-                result = post_hook(block.name, block.input, result)
+            impl = implementations.get(block.name)
+            if impl is None:
+                result = tool_error("validation", False, f"Unknown tool '{block.name}'.")
+            else:
+                result = impl(**block.input)
+                if post_hook and not is_tool_error(result):
+                    result = post_hook(block.name, block.input, result)
     except Exception as exc:
         result = tool_error(
             "transient",
@@ -127,7 +137,10 @@ def _execute_tool_block(
 
 
 def _run_tool_blocks(
-    tool_blocks: list, dispatcher: ToolDispatcher, hook: Optional[ToolHook], post_hook: Optional[ToolPostHook] = None
+    tool_blocks: list,
+    implementations: dict[str, Callable[..., dict]],
+    pre_hook: Optional[ToolPreHook],
+    post_hook: Optional[ToolPostHook] = None,
 ) -> list[dict]:
     """Dispatch every tool_use block from one turn concurrently.
 
@@ -138,7 +151,9 @@ def _run_tool_blocks(
     otherwise irrelevant.
     """
     with ThreadPoolExecutor(max_workers=len(tool_blocks)) as pool:
-        futures = [pool.submit(_execute_tool_block, block, dispatcher, hook, post_hook) for block in tool_blocks]
+        futures = [
+            pool.submit(_execute_tool_block, block, implementations, pre_hook, post_hook) for block in tool_blocks
+        ]
         return [future.result() for future in as_completed(futures)]
 
 
@@ -147,19 +162,27 @@ def run_tool_loop(
     model: str,
     system: str,
     tools: list[dict],
-    dispatcher: ToolDispatcher,
     user_message: str,
     max_tokens: int = 2048,
-    hook: Optional[ToolHook] = None,
+    pre_hook: Optional[ToolPreHook] = None,
     post_hook: Optional[ToolPostHook] = None,
 ) -> AgentResult:
     """Run the agentic loop.
+
+    `tools` is the task's `TOOLS` export: a list of
+    `{"schema": <Anthropic tool schema dict>, "implementation": <callable>}`
+    entries. Only `schema` is sent to the Anthropic API; `implementation`
+    is used to build an internal name -> callable map for dispatching tool_use
+    blocks directly, so callers never see or manage a separate dispatcher.
 
     The full message transcript (every user, assistant, and tool_result turn)
     is appended as it happens to a JSON Lines log file — one JSON object per
     line, so the file is a complete audit trail even if the process is
     interrupted mid-loop. See _log_file() for how the path is resolved.
     """
+    tool_schemas = [entry["schema"] for entry in tools]
+    implementations = {entry["schema"]["name"]: entry["implementation"] for entry in tools}
+
     messages = [{"role": "user", "content": user_message}]
     _append_log(messages[-1])
 
@@ -168,7 +191,7 @@ def run_tool_loop(
             model=model,
             max_tokens=max_tokens,
             system=system,
-            tools=tools,
+            tools=tool_schemas,
             messages=messages,
         )
         messages.append({"role": "assistant", "content": response.content})
@@ -178,7 +201,7 @@ def run_tool_loop(
             break
 
         tool_blocks = [block for block in response.content if block.type == "tool_use"]
-        tool_results = _run_tool_blocks(tool_blocks, dispatcher, hook, post_hook)
+        tool_results = _run_tool_blocks(tool_blocks, implementations, pre_hook, post_hook)
         messages.append({"role": "user", "content": tool_results})
         _append_log(messages[-1])
 

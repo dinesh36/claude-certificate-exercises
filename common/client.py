@@ -1,4 +1,4 @@
-"""Shared Anthropic client setup for exercise scripts."""
+"""Shared Anthropic client setup for task scripts."""
 
 from anthropic import Anthropic
 from dotenv import load_dotenv

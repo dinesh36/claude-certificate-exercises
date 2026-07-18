@@ -2,7 +2,7 @@
 
 `common` is installed editable into the root uv project's venv (see
 pyproject.toml's [tool.hatch.build.targets.wheel]), so it's importable from
-any exercise script regardless of nesting depth — no sys.path hacks needed.
+any task script regardless of nesting depth — no sys.path hacks needed.
 This just locates the root itself, e.g. to load the root .env file.
 """
 
