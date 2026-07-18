@@ -2,11 +2,11 @@
 
 Wraps an MCP tool implementation so every call's server name, tool name,
 input parameters, and either its successful result or the error it raised
-are appended to a JSON-Lines log file under logs/mcp/ — without each tool
-having to log itself. Built on the same append_log/to_jsonable primitive
-common/agent_loop.py's agentic loop uses (see common/logging_utils.py), so
-every task's execution trail — agentic loop or MCP — lands under logs/ in
-the same shape.
+are appended to a formatted (pretty-printed) JSON log file under logs/mcp/
+— without each tool having to log itself. Built on the same append_log/
+to_jsonable primitive common/agent_loop.py's agentic loop uses (see
+common/logging_utils.py), so every task's execution trail — agentic loop
+or MCP — lands under logs/ in the same shape.
 """
 
 import functools
@@ -29,7 +29,7 @@ def _log_file(server_name: str) -> Path:
 
 
 def log_mcp_call(server_name: str, tool_name: str, tool_input: dict, *, result=None, error: Exception = None) -> None:
-    """Append one JSON-Lines record for an MCP tool call: its server, tool
+    """Append one formatted JSON record for an MCP tool call: its server, tool
     name, input parameters, and either its result or the error it raised."""
     append_log(
         {

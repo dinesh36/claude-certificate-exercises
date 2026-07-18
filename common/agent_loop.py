@@ -77,7 +77,7 @@ def _log_file() -> Path:
 
 
 def _append_log(record: dict) -> None:
-    """Append one JSON-lines record to the resolved log file via common/logging_utils.py."""
+    """Append one formatted JSON record to the resolved log file via common/logging_utils.py."""
     append_log(record, _log_file())
 
 def log_tool_call(tool_name: str, tool_input: dict, result: dict) -> None:
@@ -168,9 +168,10 @@ def run_tool_loop(
     behaves exactly as a single fresh turn, unchanged from every other task.
 
     The full message transcript (every user, assistant, and tool_result turn)
-    is appended as it happens to a JSON Lines log file — one JSON object per
-    line, so the file is a complete audit trail even if the process is
-    interrupted mid-loop. See _log_file() for how the path is resolved.
+    is appended as it happens to a formatted (pretty-printed) JSON log file —
+    one entry per turn, so the file is a complete audit trail even if the
+    process is interrupted mid-loop. See _log_file() for how the path is
+    resolved.
     """
     tool_schemas = [entry["schema"] for entry in tools]
     tool_implementations = {entry["schema"]["name"]: entry["implementation"] for entry in tools}
