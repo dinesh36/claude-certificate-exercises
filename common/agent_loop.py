@@ -11,6 +11,14 @@ its tool_use by id, not by position, so this is safe) — and any dispatcher
 or hook exception is caught and converted into a structured tool_error
 result rather than propagating, so one failing tool call can never cause a
 sibling call's result, or the whole turn's tool_result block, to go missing.
+
+Two hook points bracket every tool call (Domain 1.5): `hook` runs before
+dispatch and can block it outright (PreToolUse-style — deterministic policy
+enforcement, e.g. refusing a call above a threshold); `post_hook` runs after
+a successful dispatch and can transform the result before the model ever
+sees it (PostToolUse-style — e.g. normalizing heterogeneous timestamp/status
+formats from different tools into one shape). Both are optional and
+independent of each other.
 """
 
 import functools
@@ -35,12 +43,16 @@ ToolDispatcher = Callable[[str, dict], dict]
 # (tool_name, tool_input) -> error dict to short-circuit execution, or None
 # to let the dispatcher run the tool normally. Used for programmatic policy
 # hooks (e.g. blocking a refund above a threshold) that must be enforced
-# deterministically rather than left to the model's judgment.
+# deterministically rather than left to the model's judgment. PreToolUse-style.
 ToolHook = Callable[[str, dict], Optional[dict]]
 
-# (tool_name, tool_input, result) -> None. Called after every tool
-# execution, useful for logging/observability.
-ToolObserver = Callable[[str, dict, dict], None]
+# (tool_name, tool_input, result) -> result, run on every successful
+# dispatch to transform the raw tool output before the model sees it (e.g.
+# normalizing a Unix timestamp or a numeric status code from one "tool" and
+# an ISO 8601 timestamp or string status from another into one consistent
+# shape). Never called on a hook-blocked or exception-derived tool_error
+# result — those already have a fixed, stable shape. PostToolUse-style.
+ToolPostHook = Callable[[str, dict, dict], dict]
 
 
 @dataclass
@@ -84,12 +96,19 @@ def log_tool_call(tool_name: str, tool_input: dict, result: dict) -> None:
     print(f"  [tool] {tool_name}({tool_input}) -> {result}")
 
 
-def _execute_tool_block(block, dispatcher: ToolDispatcher, hook: Optional[ToolHook]) -> dict:
+def _execute_tool_block(
+    block, dispatcher: ToolDispatcher, hook: Optional[ToolHook], post_hook: Optional[ToolPostHook] = None
+) -> dict:
     """Run one tool_use block, converting any dispatcher/hook exception into a
     structured tool_error instead of letting it propagate and abort the run."""
     try:
         blocked = hook(block.name, block.input) if hook else None
-        result = blocked if blocked is not None else dispatcher(block.name, block.input)
+        if blocked is not None:
+            result = blocked
+        else:
+            result = dispatcher(block.name, block.input)
+            if post_hook and not is_tool_error(result):
+                result = post_hook(block.name, block.input, result)
     except Exception as exc:
         result = tool_error(
             "transient",
@@ -107,7 +126,9 @@ def _execute_tool_block(block, dispatcher: ToolDispatcher, hook: Optional[ToolHo
     }
 
 
-def _run_tool_blocks(tool_blocks: list, dispatcher: ToolDispatcher, hook: Optional[ToolHook]) -> list[dict]:
+def _run_tool_blocks(
+    tool_blocks: list, dispatcher: ToolDispatcher, hook: Optional[ToolHook], post_hook: Optional[ToolPostHook] = None
+) -> list[dict]:
     """Dispatch every tool_use block from one turn concurrently.
 
     Blocks can resolve in a different order than they were requested (e.g.
@@ -117,7 +138,7 @@ def _run_tool_blocks(tool_blocks: list, dispatcher: ToolDispatcher, hook: Option
     otherwise irrelevant.
     """
     with ThreadPoolExecutor(max_workers=len(tool_blocks)) as pool:
-        futures = [pool.submit(_execute_tool_block, block, dispatcher, hook) for block in tool_blocks]
+        futures = [pool.submit(_execute_tool_block, block, dispatcher, hook, post_hook) for block in tool_blocks]
         return [future.result() for future in as_completed(futures)]
 
 
@@ -130,6 +151,7 @@ def run_tool_loop(
     user_message: str,
     max_tokens: int = 2048,
     hook: Optional[ToolHook] = None,
+    post_hook: Optional[ToolPostHook] = None,
 ) -> AgentResult:
     """Run the agentic loop.
 
@@ -156,7 +178,7 @@ def run_tool_loop(
             break
 
         tool_blocks = [block for block in response.content if block.type == "tool_use"]
-        tool_results = _run_tool_blocks(tool_blocks, dispatcher, hook)
+        tool_results = _run_tool_blocks(tool_blocks, dispatcher, hook, post_hook)
         messages.append({"role": "user", "content": tool_results})
         _append_log(messages[-1])
 

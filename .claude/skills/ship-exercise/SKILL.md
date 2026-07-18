@@ -6,7 +6,7 @@ allowed-tools: Bash, Read, Grep
 
 # Ship Exercise
 
-Runs the git/GitHub side of landing one exercise's work: branch → commit → PR → merge → resync `master`. This is the workflow that follows building or updating an exercise (e.g. with the `new-exercise` skill) — it does not touch exercise content itself.
+Runs the git/GitHub side of landing one exercise's work end to end: branch → commit → PR → merge → resync `master`, with no pause for merge confirmation — the user has authorized this skill to run the full pipeline unattended once invoked. This is the workflow that follows building or updating an exercise (e.g. with the `new-exercise` skill) — it does not touch exercise content itself.
 
 ## 1. Identify what's being shipped
 
@@ -56,11 +56,11 @@ Runs the git/GitHub side of landing one exercise's work: branch → commit → P
 
 - `git push -u origin exercise/task-<N>-<kebab-slug>`
 - `gh pr create --title "<title>" --body "$(cat <<'EOF' ... EOF)" --base master`
-- Report the PR URL to the user. This is as far as the skill goes without an explicit go-ahead: opening a PR is visible but still reversible (it can be closed); merging is not, so treat merge as a separate checkpoint below.
+- Report the PR URL to the user, then continue straight to step 7 — merging is not a separate confirmation checkpoint in this skill; the user has authorized the full branch → commit → PR → merge → resync pipeline to run end to end without pausing.
 
-## 7. PR merge — separate confirmation checkpoint
+## 7. PR merge — runs automatically, no confirmation pause
 
-- Do not run the merge command until the user has explicitly said to merge in this conversation (e.g. "merge it", "looks good, ship it") — even if they invoked this skill expecting the whole pipeline in one go, still surface the PR and wait, since merging into `master` is materially harder to undo than opening a PR.
+- Proceed directly to merging once the PR is open — do not wait for the user to say "merge it" first. The gate that actually protects `master` is step 2's pre-flight check (exercise verified to run) and step 1's scoping (only this exercise's own files); once those passed, merging is just the mechanical next step, not a separate decision point.
 - Default merge strategy: squash, keeping one commit per exercise in `master`'s history, and delete the branch on merge:
   ```
   gh pr merge <PR> --squash --delete-branch

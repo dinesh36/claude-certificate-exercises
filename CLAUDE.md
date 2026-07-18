@@ -16,15 +16,30 @@ This repository contains exercise implementations for the [Claude Certified Arch
 
 ## Exercises
 
-| # | Title | Domains |
-|---|-------|---------|
-| 1 | Multi-Tool Agent with Escalation Logic | 1, 2, 5 |
-| 2 | Claude Code Team Development Workflow Config | 2, 3 |
-| 3 | Structured Data Extraction Pipeline | 4, 5 |
-| 4 | Multi-Agent Research Pipeline | 1, 2, 5 |
-| 5 | Coordinator-Subagent Orchestration | 1 |
-| 6 | Subagent Invocation & Context Passing | 1 |
-| 7 | IT Access Helpdesk (Multi-Step Enforcement & Handoff) | 1 |
+Two series exist, each with its own `#` numbering — see the naming convention below for how a `#` maps to a folder name in each case. Exercise 1 is shared between both series (same folder), since it happens to satisfy both the first preparation exercise and Task Statement 1.1.
+
+### Preparation Exercises
+
+The original four end-to-end exercises from `wiki/exercises/preparation-exercises.md`.
+
+| # | Title | Domains | Status |
+|---|-------|---------|--------|
+| 1 | Multi-Tool Agent with Escalation Logic | 1, 2, 5 | Done |
+| 2 | Claude Code Team Development Workflow Config | 2, 3 | Not started |
+| 3 | Structured Data Extraction Pipeline | 4, 5 | Not started |
+| 4 | Multi-Agent Research Pipeline | 1, 2, 5 | Not started |
+
+### Domain 1 Task-Statement Series
+
+One exercise per Task Statement in `wiki/exercises/agentic-architecture.md`, folder-numbered to match (`task-<N>` covers Task Statement `1.<N>`).
+
+| # | Title | Task Statement | Status |
+|---|-------|-----------------|--------|
+| 1 | Multi-Tool Agent with Escalation Logic | 1.1 | Done |
+| 2 | Coordinator-Subagent Orchestration | 1.2 | Done |
+| 3 | Subagent Invocation & Context Passing | 1.3 | Done |
+| 4 | IT Access Helpdesk (Multi-Step Enforcement & Handoff) | 1.4 | Done |
+| 5 | Multi-Carrier Shipment Tracking (Hooks & Data Normalization) | 1.5 | Done |
 
 ## Repository Layout
 
@@ -36,10 +51,11 @@ This repository contains exercise implementations for the [Claude Certified Arch
 
 ## Exercise Naming & Folder Convention
 
-Each exercise lives at `exercises/<domain-slug>/task-<N>-<kebab-slug>/`, where:
+Each exercise lives at `exercises/<domain-slug>/task-<N>-<kebab-slug>/`, where `<N>` depends on which series (above) the exercise belongs to:
 
-- `<N>` is the exercise's row number in the Exercises table above (matches `wiki/exercises/preparation-exercises.md` ordering) — global across the repo, not per-domain.
-- `<domain-slug>` is the slug of the **first** domain listed for that exercise in the Domains column.
+- **Preparation Exercises**: `<N>` is the exercise's row number in that table.
+- **Domain Task-Statement Series** (e.g. the Domain 1 series above): `<N>` is the second number of the Task Statement it covers — Task Statement `X.N` → `task-<N>`. If a second domain later grows its own task-statement series, it gets its own `task-<N>` numbering restarting at 1 within that domain's folder, same as Domain 1's did.
+- `<domain-slug>` is the slug of the **first** domain listed for that exercise (Preparation Exercises) or the series' own domain (Task-Statement Series).
 - `<kebab-slug>` is a short kebab-case rendering of the title (e.g. `multi-tool-agent-escalation`).
 
 Domain slugs (fixed — do not invent new ones):
@@ -52,7 +68,7 @@ Domain slugs (fixed — do not invent new ones):
 | 4 – Prompt Engineering & Structured Output | `prompt-engineering` |
 | 5 – Context Management & Reliability | `context-management` |
 
-Every exercise folder must contain a `README.md` documenting which task statement(s) it covers and mapping each `Knowledge of`/`Skills in` bullet to the exact file/line range implementing it (see [`exercises/agentic-architecture/task-1-multi-tool-agent-escalation/README.md`](exercises/agentic-architecture/task-1-multi-tool-agent-escalation/README.md) for the canonical example). Code should be split into small per-concern modules (e.g. `main.py` entry point, `tools.py` schemas/implementations, `policy.py` hooks, `data.py` mock data) and reuse `common/` rather than duplicating client setup, the agentic loop, or error-shaping logic. Only add to `common/` when a capability is genuinely reusable across exercises, not exercise-specific logic.
+Every exercise folder must contain a `README.md` documenting which task statement(s) it covers and mapping each `Knowledge of`/`Skills in` bullet to the file (by name only, never a line number/range — those drift) plus a pasted code snippet demonstrating it (see [`exercises/agentic-architecture/task-1-multi-tool-agent-escalation/README.md`](exercises/agentic-architecture/task-1-multi-tool-agent-escalation/README.md) for the canonical example). Code should be split into small per-concern modules (e.g. `main.py` entry point, `tools.py` schemas/implementations, `policy.py`/`normalize.py` hooks, `data.py` mock data) and reuse `common/` rather than duplicating client setup, the agentic loop, or error-shaping logic. Only add to `common/` when a capability is genuinely reusable across exercises, not exercise-specific logic.
 
 Use the `new-exercise` skill (`.claude/skills/new-exercise/SKILL.md`) to scaffold a new exercise consistent with these conventions.
 
