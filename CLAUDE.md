@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Purpose
 
-This repository contains task implementations for the [Claude Certified Architect – Foundations](https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification) certification. Each task maps to one or more of the five exam domains. The exam guide is at `wiki/exam-guide.pdf` and the task list is at `wiki/tasks/README.md`.
+This repository contains task implementations for the [Claude Certified Architect – Foundations](https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification) certification. Each task maps to exactly one of the five exam domains — domains are never mixed within a single task, even incidentally in a module docstring or description. If a task's design genuinely touches concerns from a second domain, that's a signal to split it into two separate tasks, not to label one task with both domains. The exam guide is at `wiki/exam-guide.pdf` and the task list is at `wiki/tasks/README.md`.
 
 ## Task Domains
 
@@ -29,6 +29,7 @@ One row per completed task, added only once it's actually built and verified —
 | [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-5 - Hooks data normalization](tasks/agentic-architecture/task-5-hooks-data-normalization/README.md) | A shipment-tracking desk across multiple mock carrier systems |
 | [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-6 - Task decomposition strategies](tasks/agentic-architecture/task-6-task-decomposition-strategies/README.md) | A manufacturing quality-control coordinator choosing decomposition strategy |
 | [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-7 - Session resumption forking](tasks/agentic-architecture/task-7-session-resumption-forking/README.md) | A legacy-codebase migration coordinator managing resumable, forkable sessions |
+| [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp) | [Task-1 - Tool interface clarity boundaries](tasks/tool-design-mcp/task-1-tool-interface-clarity-boundaries/README.md) | A dev-workflow MCP server fetching user stories and planning implementation work |
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-1 - CLAUDE.md hierarchy scoping](tasks/claude-code-workflows/task-1-claude-md-hierarchy-scoping/README.md) | A fintech billing monorepo with per-package CLAUDE.md conventions |
 
 ## Repository Layout
@@ -36,8 +37,8 @@ One row per completed task, added only once it's actually built and verified —
 - `wiki/exam-guide.pdf` — the certification exam guide (source material, do not edit).
 - `wiki/tasks/` — one Markdown file per domain (`1-agentic-architecture.md`, `2-tool-design-mcp.md`, `3-claude-code-workflows.md`, `4-prompt-engineering.md`, `5-context-management.md`), each broken into numbered `### Task Statement X.Y` sections with `Knowledge of` / `Skills in` bullets, plus `6-preparation-tasks.md` listing the tasks end to end. Treat these as reference material — quote from them, don't edit them as part of building a task.
 - `tasks/` — the practical implementations, one subfolder per domain, one folder per task inside that (see naming convention below).
-- `common/` — the shared Python package (Anthropic client setup, the generic agentic tool-use loop, structured tool-error helpers) reused across tasks. Installed editable into the root `uv` project, so any task script can `from common.x import y` regardless of nesting depth.
-- `logs/` — JSON-Lines transcripts written automatically by `common/agent_loop.py`, one file per run.
+- `common/` — the shared Python package (Anthropic client setup, the generic agentic tool-use loop, structured tool-error helpers, the shared JSON-Lines logging primitive, the MCP tool-call logging wrapper) reused across tasks. Installed editable into the root `uv` project, so any task script can `from common.x import y` regardless of nesting depth.
+- `logs/` — JSON-Lines transcripts, one file per run: `logs/*.jsonl` from `common/agent_loop.py`'s agentic loop, `logs/mcp/*.jsonl` from `common/mcp_logging.py`'s MCP tool-call wrapper, `logs/sessions/*.json` from `common/session_store.py`.
 
 ## Task Naming & Folder Convention
 
@@ -67,19 +68,21 @@ When building tasks, use the Anthropic SDK (`@anthropic-ai/sdk` for Node.js or `
 
 Invoke the `/claude-api` skill before writing any Anthropic SDK code — it loads current model IDs, pricing, and API patterns so you don't rely on stale training data.
 
-### Agentic loop pattern (Domain 1)
+### Agentic loop pattern
 
 Terminate loops on `stop_reason === "end_turn"`, continue on `"tool_use"`. Never use arbitrary iteration caps as the primary stopping mechanism or parse assistant text content as a completion indicator.
 
-### Structured output (Domain 4)
+### Structured output
 
 Use `tool_use` with a JSON schema for guaranteed schema-compliant output. Set `tool_choice: { type: "tool", name: "..." }` to force a specific extractor; use `tool_choice: "any"` when the document type is unknown. Do not rely on `JSON.parse` of raw assistant text.
 
-### MCP server config (Domain 2)
+### MCP server config
 
 - Project-shared servers → `.mcp.json` (committed, use `${ENV_VAR}` expansion for credentials)
 - Personal/experimental servers → `~/.claude.json` (not committed)
+- Register a task's MCP server with `claude mcp add` and leave it attached once verified — don't remove it after testing. Editing the server's code afterward doesn't retroactively update an already-registered, already-running connection: a Claude Code session started before the edit keeps talking to the process it already spawned. Whenever a task's MCP server code changes, re-attach it (`claude mcp remove <name>` then `claude mcp add` again) so the registration — and any session started after that point — reflects the latest code.
+- Wrap every MCP tool implementation with `common/mcp_logging.py`'s `logged_tool(server_name)` decorator (stacked directly under `@mcp.tool()`), the MCP counterpart to `common/agent_loop.py`'s own JSON-Lines request logging — it logs each call's server name, tool name, input parameters, and either its result or its raised error to `logs/mcp/`.
 
-### Error responses from tools (Domain 2)
+### Error responses from tools
 
 Return structured metadata: `errorCategory` (`transient` | `validation` | `permission`), `isRetryable` boolean, and a human-readable description. Never return a generic `"Operation failed"` string.

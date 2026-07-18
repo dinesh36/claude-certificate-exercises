@@ -29,7 +29,6 @@ blocks directly; callers never construct or pass around a separate dispatcher.
 """
 
 import functools
-import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -38,6 +37,7 @@ from typing import Callable, Optional
 
 from .bootstrap import find_repo_root
 from .errors import is_tool_error, tool_error
+from .logging_utils import append_log
 
 # Every task logs the full message transcript by default, one file per
 # run, always under <repo root>/logs/.
@@ -65,21 +65,6 @@ class AgentResult:
     log_file: Optional[Path] = None
 
 
-def to_jsonable(value):
-    """Recursively convert SDK content blocks (pydantic models) into plain JSON-able data.
-
-    Public (no leading underscore) because common/session_store.py also needs it to
-    persist a run_tool_loop call's full messages list to disk for later resumption.
-    """
-    if hasattr(value, "model_dump"):
-        return value.model_dump(mode="json")
-    if isinstance(value, list):
-        return [to_jsonable(item) for item in value]
-    if isinstance(value, dict):
-        return {key: to_jsonable(item) for key, item in value.items()}
-    return value
-
-
 @functools.lru_cache(maxsize=1)
 def _log_file() -> Path:
     """One log file per process run, named with a readable UTC timestamp.
@@ -92,12 +77,8 @@ def _log_file() -> Path:
 
 
 def _append_log(record: dict) -> None:
-    """Append one JSON-lines record to the resolved log file, creating parent dirs as needed."""
-    path = _log_file()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    record = {"timestamp": datetime.now(timezone.utc).isoformat(), **record}
-    with path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(to_jsonable(record)) + "\n")
+    """Append one JSON-lines record to the resolved log file via common/logging_utils.py."""
+    append_log(record, _log_file())
 
 def log_tool_call(tool_name: str, tool_input: dict, result: dict) -> None:
     print(f"  [tool] {tool_name}({tool_input}) -> {result}")

@@ -1,12 +1,12 @@
-# Category B: Claude Code Configuration & Workflow Tasks (Domain 3)
+# Claude Code Configuration & Workflow Tasks
 
-Scaffolds a task as a small **sample project** — its own nested `CLAUDE.md` hierarchy and `.claude/` configuration — that demonstrates a Claude Code configuration mechanism. Unlike Category A, there is no Anthropic API call, no `common/` reuse, and no `main.py`/`tools.py` agentic loop anywhere in this category: the sample project's config files themselves *are* the graded artifact. Verification is a human opening a live Claude Code session with the sample folder as the working directory and trying documented sample prompts — not running a script.
+Scaffolds a task as a small **sample project** — its own nested `CLAUDE.md` hierarchy and `.claude/` configuration — that demonstrates a Claude Code configuration mechanism. Unlike Agentic Tool-Use Tasks, there is no Anthropic API call, no `common/` reuse, and no `main.py`/`tools.py` agentic loop anywhere in this category: the sample project's config files themselves *are* the graded artifact. Verification is a human opening a live Claude Code session with the sample folder as the working directory and trying documented sample prompts — not running a script.
 
 `SKILL.md`'s step 1 (gather inputs) already resolved the task number, domain, and task statement text before handing off to this file — pick up from scenario proposal.
 
 ## 1. Propose scenario options and confirm with the user before building anything
 
-The **scenario** here is the shape of the fictional sample codebase the config demonstrates against — e.g. a two-package Python monorepo, a frontend+backend web app, a data-pipeline repo, an infra+app repo. It must be new every time, same rule as Category A.
+The **scenario** here is the shape of the fictional sample codebase the config demonstrates against — e.g. a two-package Python monorepo, a frontend+backend web app, a data-pipeline repo, an infra+app repo. It must be new every time, same rule as Agentic Tool-Use Tasks.
 
 - Survey what's already been used: read the `# Subject` section of every existing `tasks/claude-code-workflows/*/README.md` and note its sample-project shape. Never repeat one or thinly reskin it.
 - Draft 3-4 candidate sample-project shapes for the covered task statement(s), each structurally different enough to need genuinely different configuration (different package boundaries, different conventions per area, different team-ownership stories) — not just renamed folders around the same two-package idea. Each candidate must still naturally exercise every `Knowledge of`/`Skills in` bullet for the covered task statement(s).
@@ -15,9 +15,9 @@ The **scenario** here is the shape of the fictional sample codebase the config d
 
 ## 2. Compute the folder path
 
-`tasks/claude-code-workflows/task-<N>-<kebab-slug>/` — same convention as Category A (see `CLAUDE.md`'s Task Naming & Folder Convention section).
+`tasks/claude-code-workflows/task-<N>-<kebab-slug>/` — same convention as Agentic Tool-Use Tasks (see `CLAUDE.md`'s Task Naming & Folder Convention section).
 
-- `<kebab-slug>` = short kebab-case rendering of the task's **type** — the configuration mechanism demonstrated (e.g. `claude-md-hierarchy-scoping`, `slash-commands-and-skills`, `path-specific-rules`) — never the sample project's fictional scenario. Same rule as Category A: the scenario only ever appears in the Implemented Tasks table's Topic column and the README's `# Subject` section.
+- `<kebab-slug>` = short kebab-case rendering of the task's **type** — the configuration mechanism demonstrated (e.g. `claude-md-hierarchy-scoping`, `slash-commands-and-skills`, `path-specific-rules`) — never the sample project's fictional scenario. Same rule as Agentic Tool-Use Tasks: the scenario only ever appears in the Implemented Tasks table's Topic column and the README's `# Subject` section.
 
 Do not reuse or renumber an existing folder. `ls tasks/claude-code-workflows/` first if unsure whether `N` is taken.
 
@@ -36,7 +36,7 @@ The task folder **is** a nested sample project — everything under it is the gr
 
 <readme_template>
   <purpose>
-    Same purpose as Category A's README: prove, with the real config files pasted in, that every Knowledge-of and Skills-in bullet for the covered task statement is actually implemented — plus prove the sample is genuinely testable by documenting prompts a reader can fire at a live Claude Code session.
+    Same purpose as Agentic Tool-Use Tasks' README: prove, with the real config files pasted in, that every Knowledge-of and Skills-in bullet for the covered task statement is actually implemented — plus prove the sample is genuinely testable by documenting prompts a reader can fire at a live Claude Code session.
   </purpose>
 
   <section id="1" name="task_statement_header">
@@ -47,7 +47,7 @@ The task folder **is** a nested sample project — everything under it is the gr
 ## Skills in
 - &lt;bullet, copied verbatim&gt;
     </format>
-    <rule>Identical rule to Category A: copy verbatim, repeat once per statement covered if the task spans more than one.</rule>
+    <rule>Identical rule to Agentic Tool-Use Tasks: copy verbatim, repeat once per statement covered if the task spans more than one.</rule>
   </section>
 
   <separator>---</separator>
@@ -58,7 +58,7 @@ The task folder **is** a nested sample project — everything under it is the gr
 &lt;1-2 sentences: what the sample project's fictional codebase is and what configuration mechanism it demonstrates&gt;
 - &lt;bullet, if needed: a specific mechanic worth calling out, e.g. a deliberate hierarchy conflict or a diagnosable misconfiguration&gt;
     </format>
-    <rule>Same plain-language rule as Category A — no file references, no code, written for a reader who hasn't opened anything yet.</rule>
+    <rule>Same plain-language rule as Agentic Tool-Use Tasks — no file references, no code, written for a reader who hasn't opened anything yet.</rule>
   </section>
 
   <separator>---</separator>
@@ -98,7 +98,7 @@ This task has no script to run — it's a set of Claude Code configuration files
 
   &lt;one sentence on how the snippet satisfies the bullet&gt;
     </format>
-    <rule>Same rule as Category A: every bullet gets exactly one entry, same order, cite by filename only (never a line number), paste the real snippet verbatim. Snippets here are usually CLAUDE.md/`.claude/rules/*.md` excerpts rather than Python.</rule>
+    <rule>Same rule as Agentic Tool-Use Tasks: every bullet gets exactly one entry, same order, cite by filename only (never a line number), paste the real snippet verbatim. Snippets here are usually CLAUDE.md/`.claude/rules/*.md` excerpts rather than Python.</rule>
   </section>
 </readme_template>
 
@@ -109,12 +109,12 @@ There's no script to `uv run`. Instead:
 - Re-check every `@import` reference actually resolves to a file that exists in the task folder — no dangling imports.
 - Re-check every `.claude/rules/*.md` file has valid YAML frontmatter if it uses one (e.g. a `paths:` glob for a path-scoped-rules task).
 - Read every nested `CLAUDE.md` back and confirm a directory-level override reads as a deliberate, explainable difference from its parent rather than a confusing contradiction.
-- If you genuinely have a way to open a nested Claude Code session against the sample folder in this environment, do so and confirm the documented sample prompts behave as written. If not, say so plainly in your report — this needs a live Claude Code session to confirm interactively, the same honesty standard Category A applies when the API is out of credits. Do not claim the prompts were verified if they weren't.
+- If you genuinely have a way to open a nested Claude Code session against the sample folder in this environment, do so and confirm the documented sample prompts behave as written. If not, say so plainly in your report — this needs a live Claude Code session to confirm interactively, the same honesty standard Agentic Tool-Use Tasks applies when the API is out of credits. Do not claim the prompts were verified if they weren't.
 - Re-open the written README.md and check every pasted snippet still matches the real file verbatim.
 
 ## 6. Update CLAUDE.md and README.md once verified
 
-Identical to Category A's step 6 — same table format, same columns, add one row to **both** `CLAUDE.md`'s `### Implemented Tasks` table and the root `README.md`'s `# Tasks` table in the same pass:
+Identical to Agentic Tool-Use Tasks' step 6 — same table format, same columns, add one row to **both** `CLAUDE.md`'s `### Implemented Tasks` table and the root `README.md`'s `# Tasks` table in the same pass:
 
 | Domain | Task | Topic |
 |---|---|---|
