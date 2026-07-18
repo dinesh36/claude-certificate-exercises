@@ -7,12 +7,22 @@ modules as a baseline session, can be resumed later and told about one
 specific module that changed (a targeted re-analysis rather than a full
 re-exploration), can be forked from that shared baseline into independent
 branches comparing divergent migration strategies, and can alternatively be
-restarted fresh with an injected structured summary when the raw session's
-tool results would otherwise be stale.
+restarted with a genuinely empty conversation that recovers context from
+Anthropic's memory tool instead of resuming or replaying anything — the
+right choice when the raw session's tool results would otherwise be stale.
+
+`new`/`resume`/`fork` are built on common/session_store.py (save/load/fork
+of the actual prior messages — the --resume/fork_session mechanic). `restart`
+is built on Anthropic's memory tool (memory_20250818, see memory_tool.py)
+instead: it has no concept of a conversation transcript at all, so it can't
+resume or fork anything — what it's good for is a curated, explicitly
+written/updated file a brand-new session reads back, rather than a raw
+tool-call history that might contain an outdated fact baked into an old
+tool_result.
 
 See data.py for the mock module/change/estimate data, tools.py for the tool
 schemas/implementations, and common/session_store.py for the save/load/fork
-primitives this task's session modes are built on.
+primitives the resume/fork modes are built on.
 """
 
 import sys
@@ -20,6 +30,7 @@ import sys
 from common.agent_loop import run_tool_loop
 from common.client import DEFAULT_MODEL, get_client
 from common.session_store import fork_session, load_session, save_session
+from memory_tool import reset_memory
 
 from tools import TOOLS
 
@@ -29,13 +40,17 @@ SYSTEM_PROMPT = (
     "You are a legacy-codebase migration coordinator. On a fresh baseline "
     "investigation, call list_modules first, then analyze_module for every "
     "module that needs a closer look, before summarizing coupling, "
-    "complexity, and test-coverage risk. If you are told a specific module "
-    "changed since your last analysis, call check_module_diff for that "
-    "module and update your assessment for just that module — do not "
-    "re-run list_modules or re-analyze modules that were not mentioned as "
-    "changed. When asked to recommend or compare a specific migration "
-    "strategy for a module, call estimate_migration_effort for that exact "
-    "strategy/module pair before giving a recommendation."
+    "complexity, and test-coverage risk. Once you've completed a baseline "
+    "investigation, use your memory tool to record a concise summary of your "
+    "findings — one line per module — in /memories/legacy-migration-baseline.md, "
+    "so a later session can recover your findings without replaying every "
+    "tool call. If you are told a specific module changed since your last "
+    "analysis, call check_module_diff for that module, update your "
+    "assessment for just that module, and update your memory file to keep it "
+    "current — do not re-run list_modules or re-analyze modules that were "
+    "not mentioned as changed. When asked to recommend or compare a specific "
+    "migration strategy for a module, call estimate_migration_effort for "
+    "that exact strategy/module pair before giving a recommendation."
 )
 
 DEFAULT_SESSION_ID = "legacy-migration-baseline"
@@ -68,7 +83,8 @@ if __name__ == "__main__":
                 "for a future migration decision."
             )
         )
-        print(f"[new session '{session_id}']\nUser: {message}")
+        reset_memory()
+        print(f"[new session '{session_id}'] (memory cleared for a fresh baseline)\nUser: {message}")
         messages = _run(message, history=None)
         save_session(session_id, messages)
 
@@ -104,23 +120,20 @@ if __name__ == "__main__":
         save_session(new_id, messages)
 
     elif mode == "restart":
-        if len(sys.argv) < 4:
-            raise SystemExit('Usage: main.py restart <new_session_id> "<structured summary>" ["message"]')
-        session_id = sys.argv[2]
-        summary = sys.argv[3]
-        message = sys.argv[4] if len(sys.argv) > 4 else "Given that summary, recommend a migration strategy for billing."
-        seeded_history = [
-            {
-                "role": "user",
-                "content": f"Structured summary of a prior investigation (treat this as current, not stale): {summary}",
-            },
-            {
-                "role": "assistant",
-                "content": "Understood — I'll treat that summary as the current state rather than re-deriving it from scratch.",
-            },
-        ]
-        print(f"[restarting '{session_id}' with an injected summary instead of resuming raw history]\nUser: {message}")
-        messages = _run(message, history=seeded_history)
+        session_id = sys.argv[2] if len(sys.argv) > 2 else "fresh-restart"
+        message = (
+            sys.argv[3]
+            if len(sys.argv) > 3
+            else (
+                "Recommend a migration strategy for billing, with effort/timeline/risk — "
+                "check your memory for anything already known before investigating further."
+            )
+        )
+        print(
+            f"[restarting '{session_id}' — empty conversation, recovering context from the "
+            f"memory tool instead of resuming or replaying any prior transcript]\nUser: {message}"
+        )
+        messages = _run(message, history=None)
         save_session(session_id, messages)
 
     else:

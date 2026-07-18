@@ -13,9 +13,10 @@
 ---
 
 # Subject
-A legacy-codebase migration coordinator that investigates a monolith's modules (`billing`, `auth`, `reporting`) as a named baseline session, then demonstrates every way that session can continue: resumed later with a targeted note about one module that changed, forked into independent branches comparing divergent migration strategies from the same shared baseline, or abandoned in favor of a fresh session seeded with a structured summary instead of replaying stale tool results.
-- `main.py` has four modes — `new`, `resume`, `fork`, `restart` — each backed by `common/session_store.py`, a small reusable primitive (`save_session`/`load_session`/`fork_session`) added to `common/` for this task.
-- Resuming after `billing`'s coupling score changed produces a **targeted** re-analysis of just that module; forking the baseline into a strangler-fig branch and a big-bang branch produces genuinely different effort/risk recommendations from identical starting context.
+A legacy-codebase migration coordinator that investigates a monolith's modules (`billing`, `auth`, `reporting`) as a named baseline session, then demonstrates every way that session can continue: resumed later with a targeted note about one module that changed, forked into independent branches comparing divergent migration strategies from the same shared baseline, or abandoned for a genuinely empty conversation that recovers context from Anthropic's memory tool instead of replaying stale tool results.
+- `new`/`resume`/`fork` are built on `common/session_store.py`, a small reusable primitive (`save_session`/`load_session`/`fork_session`) that persists and replays the actual prior conversation — the real `--resume`/`fork_session` mechanic.
+- `restart` is built on Anthropic's built-in memory tool (`memory_20250818`, see `memory_tool.py`) instead — a genuinely different mechanism with no concept of a conversation transcript at all, so it can't resume or fork anything. What it's good for: the coordinator writes a curated findings file to `/memories` during the baseline and keeps it current on `resume`; `restart` starts a brand-new, empty conversation and recovers context by reading that file back, rather than trusting a raw tool result that may have gone stale.
+- Resuming after `billing`'s coupling score changed produces a **targeted** re-analysis of just that module (and updates the memory file to match); forking the baseline into a strangler-fig branch and a big-bang branch produces genuinely different effort/risk recommendations from identical starting context.
 
 ---
 
@@ -24,7 +25,7 @@ See the repository root [README](../../../README.md) for one-time setup (uv proj
 ```bash
 uv run tasks/agentic-architecture/task-7-session-resumption-forking/main.py new
 ```
-This starts and saves a fresh baseline session (`legacy-migration-baseline`) investigating all three modules. Then try each continuation mode against that saved session:
+This starts and saves a fresh baseline session (`legacy-migration-baseline`) investigating all three modules — and clears the memory directory first, so a second `new` run starts with a genuinely clean slate rather than the coordinator's `create` call failing with "File already exists" against a leftover file from a previous run. Then try each continuation mode against that saved session:
 ```bash
 uv run tasks/agentic-architecture/task-7-session-resumption-forking/main.py resume
 ```
@@ -35,14 +36,14 @@ uv run tasks/agentic-architecture/task-7-session-resumption-forking/main.py fork
 ```
 Both forks start from the identical saved baseline but diverge — one gets a ~10-week low-risk incremental plan, the other a ~4-week high-risk rewrite plan — proving the fork is a real independent branch, not a shared mutable session.
 ```bash
-uv run tasks/agentic-architecture/task-7-session-resumption-forking/main.py restart fresh-restart "billing's coupling dropped from 8 to 3 after the invoicing extraction, but test coverage is still only 22%" "Given that summary, recommend a migration strategy for billing with effort/timeline/risk."
+uv run tasks/agentic-architecture/task-7-session-resumption-forking/main.py restart
 ```
-Ignores the saved baseline entirely and seeds a brand-new session with a short structured summary instead — useful when the raw session's tool results (e.g. billing's original `coupling_score: 8`) would otherwise be replayed as stale context.
+Starts a genuinely empty conversation — no saved session, no seeded history at all — with only the memory tool attached. The API auto-injects an instruction to check `/memories` before doing anything else, so the coordinator reads back the findings file `new`/`resume` wrote and updated, and recommends a migration strategy for billing from that *current* (coupling now 3, not the original 8) picture — without replaying a single raw tool result from the baseline session.
 
 ---
 
 # Implementation Info
-> A legacy-migration coordinator split across `data.py` (mock module/change/estimate data), `tools.py` (tool schemas/implementations), and `main.py` (four session modes + entry point), built on a new `common/session_store.py` primitive (`save_session`/`load_session`/`fork_session`) and a `history` parameter added to `common/agent_loop.py`'s `run_tool_loop`.
+> A legacy-migration coordinator split across `data.py` (mock module/change/estimate data), `tools.py` (tool schemas/implementations, including the built-in memory tool's registration), `memory_tool.py` (the client-side handler for Anthropic's `memory_20250818` tool), and `main.py` (four session modes + entry point) — built on a new `common/session_store.py` primitive (`save_session`/`load_session`/`fork_session`) and a `history` parameter added to `common/agent_loop.py`'s `run_tool_loop`.
 ## How each Task Info item is covered:
 - **Named session resumption using --resume to continue a specific prior conversation** — `main.py`, `common/session_store.py`
 
@@ -85,22 +86,17 @@ Ignores the saved baseline entirely and seeds a brand-new session with a short s
 
   The resume prompt explicitly names which module changed rather than silently resuming and hoping the model notices — verified live: the agent called `check_module_diff("billing")` and revised only billing's risk tier, explicitly noting `auth` and `reporting` were unaffected.
 
-- **Why starting a new session with a structured summary is more reliable than resuming with stale tool results** — `main.py`
+- **Why starting a new session with a structured summary is more reliable than resuming with stale tool results** — `main.py`, `memory_tool.py`
 
   ```python
-  seeded_history = [
-      {
-          "role": "user",
-          "content": f"Structured summary of a prior investigation (treat this as current, not stale): {summary}",
-      },
-      {
-          "role": "assistant",
-          "content": "Understood — I'll treat that summary as the current state rather than re-deriving it from scratch.",
-      },
-  ]
+  print(
+      f"[restarting '{session_id}' — empty conversation, recovering context from the "
+      f"memory tool instead of resuming or replaying any prior transcript]\nUser: {message}"
+  )
+  messages = _run(message, history=None)
   ```
 
-  `restart` mode seeds a fresh session with a short, explicitly-current summary instead of replaying the baseline's original `analyze_module("billing")` tool result (which still shows the pre-extraction `coupling_score: 8`) — avoiding the risk of the model trusting stale tool output over the (correct) narrative summary.
+  `restart` mode passes `history=None` — a genuinely empty conversation, not a seeded fake one — and relies entirely on the memory tool to recover context. Verified live: after `resume` updated `/memories/legacy-migration-baseline.md` to say billing's coupling dropped from 8 to 3, a `restart` run with zero history correctly recommended a strategy based on the *current* (coupling 3) picture — proving it isn't trusting any stale `analyze_module` tool result baked into a replayed transcript, because there is no replayed transcript at all. Note `new` mode calls `reset_memory()` first (see `memory_tool.py`) — only `new` clears the memory directory; `restart` never does, since recovering whatever is already there is its entire purpose.
 
 - **Using --resume with session names to continue named investigation sessions across work sessions** — `main.py`, `common/session_store.py`
 
@@ -131,9 +127,16 @@ Ignores the saved baseline entirely and seeds a brand-new session with a short s
 
   `branch-strangler` and `branch-bigbang` fork the identical baseline and each call `estimate_migration_effort` with a different `strategy` argument — verified live: the two branches returned genuinely different effort/risk profiles (~10 weeks/low risk vs. ~4 weeks/high risk) for the same module, from the same shared starting context.
 
-- **Choosing between session resumption (when prior context is mostly valid) and starting fresh with injected summaries (when prior tool results are stale)** — `main.py`
+- **Choosing between session resumption (when prior context is mostly valid) and starting fresh with injected summaries (when prior tool results are stale)** — `main.py`, `tools.py`
 
-  Both `resume` and `restart` modes exist side by side in the same script rather than one replacing the other: `resume` is the right choice when most of the baseline still holds (only `billing` changed, `auth`/`reporting` are still valid), while `restart` is the right choice when the raw history itself would mislead the model (a stale `analyze_module` tool result outranking a corrected summary in the model's context). The task's "How to run" section walks through both so the tradeoff is directly comparable.
+  ```python
+  {
+      "schema": {"type": "memory_20250818", "name": "memory"},
+      "implementation": memory_tool,
+  },
+  ```
+
+  `resume` and `restart` are genuinely different mechanisms living side by side in the same `TOOLS` list: `resume` (via `common/session_store.py`) is the right choice when most of the baseline still holds — it replays the actual prior messages, so it's cheap and preserves everything still valid. `restart` (via the memory tool) is the right choice when the raw history itself would mislead the model — it never sees the old messages at all, only whatever curated fact was explicitly written or updated. The task's "How to run" section walks through both so the tradeoff is directly comparable.
 
 - **Informing a resumed session about specific file changes for targeted re-analysis rather than requiring full re-exploration** — `tools.py`, `main.py`
 

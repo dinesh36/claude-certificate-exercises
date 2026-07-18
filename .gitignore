@@ -6,3 +6,4 @@ __pycache__/
 *.pyc
 logs/
 temp.md
+tasks/agentic-architecture/task-7-session-resumption-forking/memory/
