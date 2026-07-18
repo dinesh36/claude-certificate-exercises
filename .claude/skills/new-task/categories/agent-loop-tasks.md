@@ -1,4 +1,4 @@
-# Category A: Agentic Tool-Use Tasks (Domains 1, 2, 4, 5)
+# Agentic Tool-Use Tasks
 
 Scaffolds a task as a Python script that exercises the Anthropic Messages API tool-use loop — indistinguishable in structure from the existing ones: same folder naming, same file split, same `common/` reuse, same README.md shape. The canonical reference implementation is [`tasks/agentic-architecture/task-1-multi-tool-agent-escalation/`](../../../../tasks/agentic-architecture/task-1-multi-tool-agent-escalation/) (tools with no client/model needed). Read its `README.md`, `main.py`, `tools.py`, `policy.py`, and `data.py` before scaffolding a new task if you have not already read them in this session. If the new task's tools need to make their own Anthropic calls (e.g. dispatching subagents), also read [`task-2-coordinator-subagent-orchestration/tools.py`](../../../../tasks/agentic-architecture/task-2-coordinator-subagent-orchestration/tools.py) for the self-contained-client pattern (see step 3's `tools.py` entry below).
 
@@ -39,7 +39,7 @@ Reuse from `common/`:
 - `common.errors.tool_error()` / `is_tool_error()` — structured tool error shape (`errorCategory`, `isRetryable`, `description`).
 - `common.bootstrap.find_repo_root()` — path resolution.
 
-If the task needs a genuinely new reusable primitive (e.g. multi-agent coordination helpers for a Domain 1.2/1.3 task), add it to `common/` rather than inlining it in the task folder — but only if it will plausibly be reused by another task, not as a place to dump task-specific logic.
+If the task needs a genuinely new reusable primitive (e.g. multi-agent coordination helpers for a Task Statement 1.2/1.3-style task), add it to `common/` rather than inlining it in the task folder — but only if it will plausibly be reused by another task, not as a place to dump task-specific logic.
 
 ## 4. Write README.md
 

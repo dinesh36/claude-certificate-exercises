@@ -13,8 +13,8 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from .agent_loop import to_jsonable
 from .bootstrap import find_repo_root
+from .logging_utils import to_jsonable
 
 SESSION_DIR_NAME = "logs/sessions"
 
