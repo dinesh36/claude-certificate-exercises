@@ -10,7 +10,7 @@
 
 ---
 
-# Task
+# Subject
 An IT helpdesk agent handling employee requests for system access, where granting access is gated behind manager sign-off and some systems can never be auto-granted at all.
 - `grant_access` is blocked by a policy hook until `verify_manager_approval` has actually confirmed approval for that exact employee and system — not just because the model was told to check first.
 - Certain systems are "restricted-tier" and always require a human security-team sign-off, even when manager approval is already on file.

@@ -12,7 +12,7 @@
 
 ---
 
-# Task
+# Subject
 A trip-planning coordinator pulling together what four travel blog posts say about a Lisbon trip, then optionally turning that into itinerary options.
 - Reviews every relevant blog post with one isolated subagent call per post, emitted together in a single turn rather than one at a time.
 - Passes the complete structured findings (claim, verbatim evidence, and which blog/author said it) into a synthesis subagent, never just IDs or paraphrased summaries.

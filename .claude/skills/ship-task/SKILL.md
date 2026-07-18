@@ -43,7 +43,7 @@ Runs the git/GitHub side of landing one task's work end to end: branch → commi
   <title>Add Task &lt;N&gt;: &lt;Title&gt;</title>
   <body>
 ## Summary
-- &lt;1-3 bullets, drawn from the task's own README `# Task` section — the scenario and what business logic/mechanic it demonstrates, not a restatement of the task statement text&gt;
+- &lt;1-3 bullets, drawn from the task's own README `# Subject` section — the scenario and what business logic/mechanic it demonstrates, not a restatement of the task statement text&gt;
 
 ## Test plan
 - [x] `uv run tasks/&lt;domain-slug&gt;/task-&lt;N&gt;-&lt;slug&gt;/main.py` — &lt;what this confirmed, e.g. "default/broad scenario"&gt;

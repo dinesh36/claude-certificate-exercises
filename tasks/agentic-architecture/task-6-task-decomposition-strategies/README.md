@@ -10,7 +10,7 @@
 
 ---
 
-# Task
+# Subject
 A manufacturing quality-control coordinator that picks its decomposition strategy to fit the request rather than always following the same script.
 - Naming specific batch IDs triggers a FIXED pipeline: one `inspect_batch` call per named batch, then a single `run_cross_batch_defect_trend` integration pass over all of them together.
 - Describing an open-ended customer-reported product defect (no batch IDs) triggers a DYNAMIC path instead: `scope_customer_defect_report` runs first, and only the root-cause areas it actually flags get a follow-up `investigate_root_cause` call — the number of follow-ups genuinely varies per product (one area for PRODUCT-A, two for PRODUCT-B) rather than being scripted.

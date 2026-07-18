@@ -10,7 +10,7 @@
 
 ---
 
-# Task
+# Subject
 A customer-support agent for an online electronics retailer that looks up orders, processes refunds, and escalates disputed cases to a human agent when they fall outside what the agent is allowed to resolve on its own.
 - Answers order-status and refund questions using two similar-but-distinct lookup tools (`get_order_details` vs. `search_orders`) so the model has to pick the right one based on whether an exact order ID is known.
 - Processes refunds directly, but a programmatic policy hook blocks any refund over $500 and redirects to human escalation instead of letting the model decide.

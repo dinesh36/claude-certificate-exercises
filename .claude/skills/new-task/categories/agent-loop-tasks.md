@@ -18,7 +18,7 @@ Structure (file split, `common/` reuse, README shape) stays identical across tas
 `tasks/<domain-slug>/task-<N>-<kebab-slug>/`
 
 - `<domain-slug>` = slug of the domain the task belongs to — see domain-slug table in `CLAUDE.md`.
-- `<kebab-slug>` = short kebab-case rendering of the task's **type** (the architecture pattern/mechanism it demonstrates, e.g. `coordinator-subagent-orchestration`, `hooks-data-normalization`) — never the fictional scenario/topic chosen in step 1. The scenario belongs only in the Implemented Tasks table's Topic column and the README's `# Task` section; two tasks with the same type but different scenarios should still read as "the same kind of folder name."
+- `<kebab-slug>` = short kebab-case rendering of the task's **type** (the architecture pattern/mechanism it demonstrates, e.g. `coordinator-subagent-orchestration`, `hooks-data-normalization`) — never the fictional scenario/topic chosen in step 1. The scenario belongs only in the Implemented Tasks table's Topic column and the README's `# Subject` section; two tasks with the same type but different scenarios should still read as "the same kind of folder name."
 
 Do not reuse or renumber an existing folder. If unsure whether `N` is already taken, `ls tasks/<domain-slug>/` first — `task-<N>` numbers must stay unique within a domain's folder (they restart at 1 per domain).
 
@@ -61,9 +61,9 @@ If the task needs a genuinely new reusable primitive (e.g. multi-agent coordinat
 
   <separator>---</separator>
 
-  <section id="2" name="task_brief">
+  <section id="2" name="subject_brief">
     <format>
-# Task
+# Subject
 &lt;1-2 sentences: what the task's fictional scenario is and what business logic it implements&gt;
 - &lt;bullet, if needed: a specific mechanic worth calling out&gt;
 - &lt;bullet, if needed: another specific mechanic worth calling out&gt;
@@ -117,6 +117,6 @@ Only after step 5 actually passes — this table is for done, working tasks, not
 
 - **Domain** — the domain's full name (e.g. "Agentic Architecture & Orchestration"), linked to its `wiki/tasks/<N>-<domain-slug>` file (match the link style already used by the existing table rows).
 - **Task** — `Task-<N> - <Small Description>` as the single link text (e.g. `Task-1 - Multi tool agent escalation`), linked to the task's own `README.md`. `<Small Description>` is the same `<kebab-slug>` chosen in step 2 (the task's **type**), just de-hyphenated into sentence case (acronyms like "IT" kept uppercase) — e.g. kebab-slug `multi-step-enforcement-handoff` → `Multi step enforcement handoff`. This must match `main.py`'s docstring title (above) and never the scenario.
-- **Topic** — one line, 10 words max, naming the fictional business scenario (e.g. "A customer-support agent for an online electronics retailer") — pull this from the task's own README `# Task` section, don't restate the Task Statement text.
+- **Topic** — one line, 10 words max, naming the fictional business scenario (e.g. "A customer-support agent for an online electronics retailer") — pull this from the task's own README `# Subject` section, don't restate the Task Statement text.
 
 Never add a row to only one of the two files — if you touch one, update the other in the same pass.

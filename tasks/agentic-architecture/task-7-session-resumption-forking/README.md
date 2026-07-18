@@ -12,7 +12,7 @@
 
 ---
 
-# Task
+# Subject
 A legacy-codebase migration coordinator that investigates a monolith's modules (`billing`, `auth`, `reporting`) as a named baseline session, then demonstrates every way that session can continue: resumed later with a targeted note about one module that changed, forked into independent branches comparing divergent migration strategies from the same shared baseline, or abandoned in favor of a fresh session seeded with a structured summary instead of replaying stale tool results.
 - `main.py` has four modes — `new`, `resume`, `fork`, `restart` — each backed by `common/session_store.py`, a small reusable primitive (`save_session`/`load_session`/`fork_session`) added to `common/` for this task.
 - Resuming after `billing`'s coupling score changed produces a **targeted** re-analysis of just that module; forking the baseline into a strangler-fig branch and a big-bang branch produces genuinely different effort/risk recommendations from identical starting context.

@@ -10,7 +10,7 @@
 
 ---
 
-# Task
+# Subject
 A shipment-tracking desk that checks package status across three mock carrier systems and can issue shipping credits for delivery problems.
 - Each carrier tool returns delivery status in a different raw shape (Unix epoch + numeric code, ISO 8601 + free-text status, a custom date string + single-letter flag) — a PostToolUse hook rewrites every one of them into one consistent shape before the model ever sees it.
 - `issue_shipping_credit` is blocked by a separate PreToolUse hook above a $75 threshold, redirecting to a human claims-desk escalation with a structured handoff instead of leaving the limit to the prompt.
