@@ -27,11 +27,12 @@ One row per completed task, added only once it's actually built and verified —
 | [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-3 - Subagent invocation context passing](tasks/agentic-architecture/task-3-subagent-invocation-context-passing/README.md) | A trip-planning coordinator building a Lisbon travel itinerary |
 | [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-4 - Multi step enforcement handoff](tasks/agentic-architecture/task-4-multi-step-enforcement-handoff/README.md) | An IT helpdesk agent granting system access requests |
 | [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-5 - Hooks data normalization](tasks/agentic-architecture/task-5-hooks-data-normalization/README.md) | A shipment-tracking desk across multiple mock carrier systems |
+| [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-1 - CLAUDE.md hierarchy scoping](tasks/claude-code-workflows/task-1-claude-md-hierarchy-scoping/README.md) | A fintech billing monorepo with per-package CLAUDE.md conventions |
 
 ## Repository Layout
 
 - `wiki/exam-guide.pdf` — the certification exam guide (source material, do not edit).
-- `wiki/tasks/` — one Markdown file per domain (`agentic-architecture.md`, `tool-design-mcp.md`, `claude-code-workflows.md`, `prompt-engineering.md`, `context-management.md`), each broken into numbered `### Task Statement X.Y` sections with `Knowledge of` / `Skills in` bullets, plus `preparation-tasks.md` listing the four tasks end to end. Treat these as reference material — quote from them, don't edit them as part of building a task.
+- `wiki/tasks/` — one Markdown file per domain (`1-agentic-architecture.md`, `2-tool-design-mcp.md`, `3-claude-code-workflows.md`, `4-prompt-engineering.md`, `5-context-management.md`), each broken into numbered `### Task Statement X.Y` sections with `Knowledge of` / `Skills in` bullets, plus `6-preparation-tasks.md` listing the tasks end to end. Treat these as reference material — quote from them, don't edit them as part of building a task.
 - `tasks/` — the practical implementations, one subfolder per domain, one folder per task inside that (see naming convention below).
 - `common/` — the shared Python package (Anthropic client setup, the generic agentic tool-use loop, structured tool-error helpers) reused across tasks. Installed editable into the root `uv` project, so any task script can `from common.x import y` regardless of nesting depth.
 - `logs/` — JSON-Lines transcripts written automatically by `common/agent_loop.py`, one file per run.
