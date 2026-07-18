@@ -101,7 +101,7 @@ def log_tool_call(tool_name: str, tool_input: dict, result: dict) -> None:
 
 def _execute_tool_block(
     block,
-    implementations: dict[str, Callable[..., dict]],
+    tool_implementations: dict[str, Callable[..., dict]],
     pre_hook: Optional[ToolPreHook],
     post_hook: Optional[ToolPostHook] = None,
 ) -> dict:
@@ -112,7 +112,7 @@ def _execute_tool_block(
         if blocked is not None:
             result = blocked
         else:
-            impl = implementations.get(block.name)
+            impl = tool_implementations.get(block.name)
             if impl is None:
                 result = tool_error("validation", False, f"Unknown tool '{block.name}'.")
             else:
@@ -138,7 +138,7 @@ def _execute_tool_block(
 
 def _run_tool_blocks(
     tool_blocks: list,
-    implementations: dict[str, Callable[..., dict]],
+    tool_implementations: dict[str, Callable[..., dict]],
     pre_hook: Optional[ToolPreHook],
     post_hook: Optional[ToolPostHook] = None,
 ) -> list[dict]:
@@ -152,7 +152,7 @@ def _run_tool_blocks(
     """
     with ThreadPoolExecutor(max_workers=len(tool_blocks)) as pool:
         futures = [
-            pool.submit(_execute_tool_block, block, implementations, pre_hook, post_hook) for block in tool_blocks
+            pool.submit(_execute_tool_block, block, tool_implementations, pre_hook, post_hook) for block in tool_blocks
         ]
         return [future.result() for future in as_completed(futures)]
 
@@ -181,7 +181,7 @@ def run_tool_loop(
     interrupted mid-loop. See _log_file() for how the path is resolved.
     """
     tool_schemas = [entry["schema"] for entry in tools]
-    implementations = {entry["schema"]["name"]: entry["implementation"] for entry in tools}
+    tool_implementations = {entry["schema"]["name"]: entry["implementation"] for entry in tools}
 
     messages = [{"role": "user", "content": user_message}]
     _append_log(messages[-1])
@@ -201,7 +201,7 @@ def run_tool_loop(
             break
 
         tool_blocks = [block for block in response.content if block.type == "tool_use"]
-        tool_results = _run_tool_blocks(tool_blocks, implementations, pre_hook, post_hook)
+        tool_results = _run_tool_blocks(tool_blocks, tool_implementations, pre_hook, post_hook)
         messages.append({"role": "user", "content": tool_results})
         _append_log(messages[-1])
 
