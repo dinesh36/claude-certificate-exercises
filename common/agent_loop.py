@@ -65,14 +65,18 @@ class AgentResult:
     log_file: Optional[Path] = None
 
 
-def _to_jsonable(value):
-    """Recursively convert SDK content blocks (pydantic models) into plain JSON-able data."""
+def to_jsonable(value):
+    """Recursively convert SDK content blocks (pydantic models) into plain JSON-able data.
+
+    Public (no leading underscore) because common/session_store.py also needs it to
+    persist a run_tool_loop call's full messages list to disk for later resumption.
+    """
     if hasattr(value, "model_dump"):
         return value.model_dump(mode="json")
     if isinstance(value, list):
-        return [_to_jsonable(item) for item in value]
+        return [to_jsonable(item) for item in value]
     if isinstance(value, dict):
-        return {key: _to_jsonable(item) for key, item in value.items()}
+        return {key: to_jsonable(item) for key, item in value.items()}
     return value
 
 
@@ -93,7 +97,7 @@ def _append_log(record: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     record = {"timestamp": datetime.now(timezone.utc).isoformat(), **record}
     with path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(_to_jsonable(record)) + "\n")
+        f.write(json.dumps(to_jsonable(record)) + "\n")
 
 def log_tool_call(tool_name: str, tool_input: dict, result: dict) -> None:
     print(f"  [tool] {tool_name}({tool_input}) -> {result}")
@@ -166,6 +170,7 @@ def run_tool_loop(
     max_tokens: int = 2048,
     pre_hook: Optional[ToolPreHook] = None,
     post_hook: Optional[ToolPostHook] = None,
+    history: Optional[list] = None,
 ) -> AgentResult:
     """Run the agentic loop.
 
@@ -175,6 +180,12 @@ def run_tool_loop(
     is used to build an internal name -> callable map for dispatching tool_use
     blocks directly, so callers never see or manage a separate dispatcher.
 
+    `history`, if given, is a prior call's `AgentResult.messages` (or a saved/
+    forked copy of one via common/session_store.py) — the new `user_message`
+    is appended after it instead of starting a fresh conversation, so a task
+    can resume or fork a session (Domain 1.7). Omitted (the default), this
+    behaves exactly as a single fresh turn, unchanged from every other task.
+
     The full message transcript (every user, assistant, and tool_result turn)
     is appended as it happens to a JSON Lines log file — one JSON object per
     line, so the file is a complete audit trail even if the process is
@@ -183,7 +194,8 @@ def run_tool_loop(
     tool_schemas = [entry["schema"] for entry in tools]
     tool_implementations = {entry["schema"]["name"]: entry["implementation"] for entry in tools}
 
-    messages = [{"role": "user", "content": user_message}]
+    messages = list(history) if history else []
+    messages.append({"role": "user", "content": user_message})
     _append_log(messages[-1])
 
     while True:
