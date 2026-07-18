@@ -12,7 +12,7 @@
 
 ---
 
-# Task
+# Subject
 A research coordinator helping decide whether an engineering org should stay remote-first, backed by a small tagged corpus on remote work's impact (productivity, tooling, wellbeing, security, onboarding).
 - The coordinator reads the question and decides for itself which topic tags actually matter, rather than always researching all five — a narrow question gets 1-2 tags, a broad one gets full coverage.
 - Each tag is researched by an isolated search subagent first at shallow depth; if the coordinator judges the gap matters, it re-dispatches the same tag with `deep_dive=true` for full coverage before synthesizing.

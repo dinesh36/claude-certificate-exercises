@@ -45,7 +45,7 @@ Each task lives at `tasks/<domain-slug>/task-<N>-<kebab-slug>/`, where:
 
 - `<N>` is the second number of the Task Statement it covers within that domain — Task Statement `X.N` → `task-<N>` (e.g. Task Statement 1.2 → `task-2`). Numbering restarts at 1 within each domain's folder, so a second domain growing its own tasks gets its own `task-1`, `task-2`, ... independent of Domain 1's.
 - `<domain-slug>` is the slug of the domain the task belongs to.
-- `<kebab-slug>` is a short kebab-case rendering of the task's **type** — the architecture pattern/mechanism it demonstrates (e.g. `multi-tool-agent-escalation`, `coordinator-subagent-orchestration`, `hooks-data-normalization`) — never the fictional scenario/topic (e.g. not `it-access-helpdesk` or `multi-carrier-shipment-tracking`). The scenario only ever appears in the Implemented Tasks table's **Topic** column and the task's own README `# Task` section — it must never leak into the folder name, since the folder should read the same regardless of which scenario a task happens to use.
+- `<kebab-slug>` is a short kebab-case rendering of the task's **type** — the architecture pattern/mechanism it demonstrates (e.g. `multi-tool-agent-escalation`, `coordinator-subagent-orchestration`, `hooks-data-normalization`) — never the fictional scenario/topic (e.g. not `it-access-helpdesk` or `multi-carrier-shipment-tracking`). The scenario only ever appears in the Implemented Tasks table's **Topic** column and the task's own README `# Subject` section — it must never leak into the folder name, since the folder should read the same regardless of which scenario a task happens to use.
 
 Domain slugs (fixed — do not invent new ones):
 

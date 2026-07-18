@@ -12,7 +12,7 @@
 
 ---
 
-# Task
+# Subject
 A fintech billing monorepo sample project — `packages/billing_api` (a payment-intake REST service) and `packages/ledger_worker` (an async ledger-posting worker) — used to demonstrate CLAUDE.md's configuration hierarchy, `@import` modularity, and `.claude/rules/` as an alternative to one monolithic file.
 - This folder's own root `CLAUDE.md` is the sample's project-level config; each package's `CLAUDE.md` is a directory-level file that adds package-specific conventions on top of it, never replacing it.
 - Shared conventions live in `.claude/rules/*.md` and are pulled into whichever package's `CLAUDE.md` actually needs them via `@import`, instead of being duplicated inline or crammed into one giant file.

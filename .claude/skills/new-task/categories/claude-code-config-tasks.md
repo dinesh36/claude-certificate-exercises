@@ -8,7 +8,7 @@ Scaffolds a task as a small **sample project** — its own nested `CLAUDE.md` hi
 
 The **scenario** here is the shape of the fictional sample codebase the config demonstrates against — e.g. a two-package Python monorepo, a frontend+backend web app, a data-pipeline repo, an infra+app repo. It must be new every time, same rule as Category A.
 
-- Survey what's already been used: read the `# Task` section of every existing `tasks/claude-code-workflows/*/README.md` and note its sample-project shape. Never repeat one or thinly reskin it.
+- Survey what's already been used: read the `# Subject` section of every existing `tasks/claude-code-workflows/*/README.md` and note its sample-project shape. Never repeat one or thinly reskin it.
 - Draft 3-4 candidate sample-project shapes for the covered task statement(s), each structurally different enough to need genuinely different configuration (different package boundaries, different conventions per area, different team-ownership stories) — not just renamed folders around the same two-package idea. Each candidate must still naturally exercise every `Knowledge of`/`Skills in` bullet for the covered task statement(s).
 - Present the candidates via `AskUserQuestion` — one option per candidate, each `description` naming the concrete package/directory breakdown and which configuration mechanism it will showcase (e.g. "two packages with divergent `@import` chains" vs. "a monorepo where a new teammate's misplaced user-level config causes a diagnosable hierarchy bug"). Mark a recommended pick, wait for the user's answer before scaffolding anything.
 - Carry the chosen scenario through consistently: package names, the illustrative source stub files, the CLAUDE.md conventions at each level, and any `.claude/rules/` topic files should all read as one coherent fictional codebase, not a mashup.
@@ -17,7 +17,7 @@ The **scenario** here is the shape of the fictional sample codebase the config d
 
 `tasks/claude-code-workflows/task-<N>-<kebab-slug>/` — same convention as Category A (see `CLAUDE.md`'s Task Naming & Folder Convention section).
 
-- `<kebab-slug>` = short kebab-case rendering of the task's **type** — the configuration mechanism demonstrated (e.g. `claude-md-hierarchy-scoping`, `slash-commands-and-skills`, `path-specific-rules`) — never the sample project's fictional scenario. Same rule as Category A: the scenario only ever appears in the Implemented Tasks table's Topic column and the README's `# Task` section.
+- `<kebab-slug>` = short kebab-case rendering of the task's **type** — the configuration mechanism demonstrated (e.g. `claude-md-hierarchy-scoping`, `slash-commands-and-skills`, `path-specific-rules`) — never the sample project's fictional scenario. Same rule as Category A: the scenario only ever appears in the Implemented Tasks table's Topic column and the README's `# Subject` section.
 
 Do not reuse or renumber an existing folder. `ls tasks/claude-code-workflows/` first if unsure whether `N` is taken.
 
@@ -52,9 +52,9 @@ The task folder **is** a nested sample project — everything under it is the gr
 
   <separator>---</separator>
 
-  <section id="2" name="task_brief">
+  <section id="2" name="subject_brief">
     <format>
-# Task
+# Subject
 &lt;1-2 sentences: what the sample project's fictional codebase is and what configuration mechanism it demonstrates&gt;
 - &lt;bullet, if needed: a specific mechanic worth calling out, e.g. a deliberate hierarchy conflict or a diagnosable misconfiguration&gt;
     </format>
@@ -121,6 +121,6 @@ Identical to Category A's step 6 — same table format, same columns, add one ro
 | `[Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows)` | `[Task-<N> - <Small Description>](tasks/claude-code-workflows/task-<N>-<kebab-slug>/README.md)` | `<topic>` |
 
 - **Task** column's `<Small Description>` is the `<kebab-slug>` from step 2 (the configuration mechanism, never the scenario), de-hyphenated into sentence case.
-- **Topic** is the sample project's fictional shape (e.g. "A two-package Python monorepo with divergent per-package conventions"), pulled from the task's own README `# Task` section.
+- **Topic** is the sample project's fictional shape (e.g. "A two-package Python monorepo with divergent per-package conventions"), pulled from the task's own README `# Subject` section.
 
 Never add a row to only one of the two files — if you touch one, update the other in the same pass.
