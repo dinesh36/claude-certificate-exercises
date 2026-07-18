@@ -12,8 +12,9 @@ Scaffolds a new exercise so it is indistinguishable in structure from the existi
 
 Before writing anything, resolve:
 
-- **Exercise number (`N`)** and **title** — from the Exercises table in `CLAUDE.md` if the user is building one of the four already listed there; otherwise ask the user, or append a new row to that table.
-- **Domain(s) covered** — the Domains column for that row. If the user is defining a brand-new exercise, ask which Task Statement(s) (`X.Y`) it targets.
+- **Which series** — `CLAUDE.md`'s Exercises section has two tables, each with its own `#` numbering. "Preparation Exercises" are the four end-to-end exercises from `wiki/exercises/preparation-exercises.md`; a "Domain `<N>` Task-Statement Series" is one exercise per Task Statement within a single domain (e.g. the existing Domain 1 series, `task-1`..`task-5` for Task Statements 1.1-1.5). If the user names a Task Statement (`X.Y`) directly, this is a Task-Statement Series entry. Ask if it's genuinely ambiguous.
+- **Exercise number (`N`)** and **title** — for a Preparation Exercise, its row number in that table. For a Task-Statement Series entry, the second number of the Task Statement (`X.Y` → `N = Y`) — check whether that domain already has a series table and what its highest `N` so far is; append the next one. If neither table has a slot for what the user's describing, ask them, or start a new Task-Statement Series table for that domain.
+- **Domain(s) covered** — the Domains column (Preparation Exercises) or the series' own domain (Task-Statement Series). If the user is defining a brand-new exercise, ask which Task Statement(s) (`X.Y`) it targets.
 - **Task statement text** — read the exact `### Task Statement X.Y: ...` heading plus its `Knowledge of` / `Skills in` bullets from `wiki/exercises/<domain-slug>.md` for every domain covered. Quote these verbatim later — do not paraphrase.
 
 ## 2. Propose scenario options and confirm with the user before building anything
@@ -27,12 +28,12 @@ Structure (file split, `common/` reuse, README shape) stays identical across exe
 
 ## 3. Compute the folder path
 
-`exercises/<primary-domain-slug>/task-<N>-<kebab-slug>/`
+`exercises/<domain-slug>/task-<N>-<kebab-slug>/`
 
-- `<primary-domain-slug>` = slug of the **first** domain listed for this exercise (see domain-slug table in `CLAUDE.md`).
+- `<domain-slug>` = slug of the **first** domain listed (Preparation Exercises) or the series' own domain (Task-Statement Series) — see domain-slug table in `CLAUDE.md`.
 - `<kebab-slug>` = short kebab-case rendering of the title.
 
-Do not reuse or renumber an existing folder. If unsure whether `N` is already taken, `ls exercises/*/` first.
+Do not reuse or renumber an existing folder. If unsure whether `N` is already taken, `ls exercises/*/` first — remember the two series share the `exercises/agentic-architecture/` directory for Domain 1, so `task-<N>` numbers must stay unique within that directory regardless of which table they came from (this is exactly the collision `CLAUDE.md`'s Exercises section had to be split into two tables to resolve — don't reintroduce it).
 
 ## 4. Scaffold the files
 
