@@ -126,11 +126,8 @@ uv run tasks/agentic-architecture/task-1-multi-tool-agent-escalation/main.py "Ca
 
   ```python
   def _append_log(record: dict) -> None:
-      path = _log_file()
-      path.parent.mkdir(parents=True, exist_ok=True)
-      record = {"timestamp": datetime.now(timezone.utc).isoformat(), **record}
-      with path.open("a", encoding="utf-8") as f:
-          f.write(json.dumps(_to_jsonable(record)) + "\n")
+      """Append one formatted JSON record to the resolved log file via common/logging_utils.py."""
+      append_log(record, _log_file())
   ```
 
-  Every user/assistant/tool_result turn is appended as it happens to a per-run JSON Lines file under `logs/` at the repo root, so the complete context history survives beyond the process's own `messages` list; the resolved path is returned on `AgentResult.log_file` and printed by `main.py`.
+  Every user/assistant/tool_result turn is appended as it happens to a per-run formatted (pretty-printed) JSON file under `logs/` at the repo root, so the complete context history survives beyond the process's own `messages` list; the resolved path is returned on `AgentResult.log_file` and printed by `main.py`.

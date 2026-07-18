@@ -25,9 +25,9 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
 1. **Register the server** (run from inside this task folder, so it's scoped to just this task rather than every project on your machine):
    ```bash
    cd tasks/tool-design-mcp/task-1-tool-interface-clarity-boundaries
-   claude mcp add --transport stdio dev-workflow-assistant -- uv run server.py
+   claude mcp add --transport stdio dev-workflow-assistant -- uv run --directory "$(pwd)" server.py
    ```
-   This uses the default **local** scope, stored in `~/.claude.json` keyed to this exact directory — it won't appear in any other project, and won't touch this repo's own root `.mcp.json`.
+   This uses the default **local** scope, stored in `~/.claude.json` keyed to this exact directory — it won't appear in any other project, and won't touch this repo's own root `.mcp.json`. The `--directory "$(pwd)"` bakes the absolute task-folder path into the registered command itself — without it, the stored command is the bare relative `uv run server.py`, which only resolves when Claude Code happens to spawn it with this folder as the process's cwd, so `claude mcp list` reports `✘ Failed to connect` from anywhere else even though the registration itself is fine.
 2. **Verify it connected:**
    ```bash
    claude mcp list

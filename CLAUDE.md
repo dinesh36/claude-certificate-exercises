@@ -30,6 +30,7 @@ One row per completed task, added only once it's actually built and verified —
 | [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-6 - Task decomposition strategies](tasks/agentic-architecture/task-6-task-decomposition-strategies/README.md) | A manufacturing quality-control coordinator choosing decomposition strategy |
 | [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-7 - Session resumption forking](tasks/agentic-architecture/task-7-session-resumption-forking/README.md) | A legacy-codebase migration coordinator managing resumable, forkable sessions |
 | [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp) | [Task-1 - Tool interface clarity boundaries](tasks/tool-design-mcp/task-1-tool-interface-clarity-boundaries/README.md) | A dev-workflow MCP server fetching user stories and planning implementation work |
+| [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp) | [Task-2 - Structured error responses](tasks/tool-design-mcp/task-2-structured-error-responses/README.md) | A warehouse-fulfillment MCP server exercising every error category |
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-1 - CLAUDE.md hierarchy scoping](tasks/claude-code-workflows/task-1-claude-md-hierarchy-scoping/README.md) | A fintech billing monorepo with per-package CLAUDE.md conventions |
 
 ## Repository Layout
@@ -37,8 +38,9 @@ One row per completed task, added only once it's actually built and verified —
 - `wiki/exam-guide.pdf` — the certification exam guide (source material, do not edit).
 - `wiki/tasks/` — one Markdown file per domain (`1-agentic-architecture.md`, `2-tool-design-mcp.md`, `3-claude-code-workflows.md`, `4-prompt-engineering.md`, `5-context-management.md`), each broken into numbered `### Task Statement X.Y` sections with `Knowledge of` / `Skills in` bullets, plus `6-preparation-tasks.md` listing the tasks end to end. Treat these as reference material — quote from them, don't edit them as part of building a task.
 - `tasks/` — the practical implementations, one subfolder per domain, one folder per task inside that (see naming convention below).
-- `common/` — the shared Python package (Anthropic client setup, the generic agentic tool-use loop, structured tool-error helpers, the shared JSON-Lines logging primitive, the MCP tool-call logging wrapper) reused across tasks. Installed editable into the root `uv` project, so any task script can `from common.x import y` regardless of nesting depth.
-- `logs/` — JSON-Lines transcripts, one file per run: `logs/*.jsonl` from `common/agent_loop.py`'s agentic loop, `logs/mcp/*.jsonl` from `common/mcp_logging.py`'s MCP tool-call wrapper, `logs/sessions/*.json` from `common/session_store.py`.
+- `common/` — the shared Python package (Anthropic client setup, the generic agentic tool-use loop, structured tool-error helpers, the shared formatted-JSON logging primitive, the MCP tool-call logging wrapper) reused across tasks. Installed editable into the root `uv` project, so any task script can `from common.x import y` regardless of nesting depth.
+- `logs/` — formatted (pretty-printed) JSON transcripts, one file per run, entries separated by a blank line: `logs/*.jsonl` from `common/agent_loop.py`'s agentic loop, `logs/mcp/*.jsonl` from `common/mcp_logging.py`'s MCP tool-call wrapper, `logs/sessions/*.json` from `common/session_store.py`.
+- `.claude/rules/` — topic-specific rule files that only load when working under a matching path (via YAML frontmatter `paths:` globs), instead of bloating this always-loaded file. See `.claude/rules/mcp-server-tasks.md` for the MCP-task attach/logging conventions.
 
 ## Task Naming & Folder Convention
 
@@ -80,8 +82,8 @@ Use `tool_use` with a JSON schema for guaranteed schema-compliant output. Set `t
 
 - Project-shared servers → `.mcp.json` (committed, use `${ENV_VAR}` expansion for credentials)
 - Personal/experimental servers → `~/.claude.json` (not committed)
-- Register a task's MCP server with `claude mcp add` and leave it attached once verified — don't remove it after testing. Editing the server's code afterward doesn't retroactively update an already-registered, already-running connection: a Claude Code session started before the edit keeps talking to the process it already spawned. Whenever a task's MCP server code changes, re-attach it (`claude mcp remove <name>` then `claude mcp add` again) so the registration — and any session started after that point — reflects the latest code.
-- Wrap every MCP tool implementation with `common/mcp_logging.py`'s `logged_tool(server_name)` decorator (stacked directly under `@mcp.tool()`), the MCP counterpart to `common/agent_loop.py`'s own JSON-Lines request logging — it logs each call's server name, tool name, input parameters, and either its result or its raised error to `logs/mcp/`.
+
+See `.claude/rules/mcp-server-tasks.md` for how to register/attach an MCP server task's tools with local Claude Code and the shared logging convention — that guidance only loads when actually working under `tasks/tool-design-mcp/`, rather than every session.
 
 ### Error responses from tools
 

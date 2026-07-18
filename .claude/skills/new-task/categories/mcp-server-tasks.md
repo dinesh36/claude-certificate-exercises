@@ -35,7 +35,7 @@ Do not reuse or renumber an existing folder. `ls tasks/tool-design-mcp/` first i
   def fetch_user_story(story_id: str) -> dict:
       ...
   ```
-  This logs every call's server name, tool name, input parameters, and either its result or the raised error to `logs/mcp/<server-name>-<timestamp>.jsonl` — the same JSON-Lines shape `common/agent_loop.py`'s agentic loop already writes under `logs/`, just for MCP calls instead of Messages API turns. `functools.wraps` inside `logged_tool` preserves the real parameter signature, so FastMCP's schema introspection still sees the original typed parameters, not `(*args, **kwargs)` — verify this isn't broken (`inspect.signature(the_wrapped_tool)` should show the real params) rather than assuming it.
+  This logs every call's server name, tool name, input parameters, and either its result or the raised error to `logs/mcp/<server-name>-<timestamp>.jsonl` — the same formatted-JSON shape `common/agent_loop.py`'s agentic loop already writes under `logs/`, just for MCP calls instead of Messages API turns. `functools.wraps` inside `logged_tool` preserves the real parameter signature, so FastMCP's schema introspection still sees the original typed parameters, not `(*args, **kwargs)` — verify this isn't broken (`inspect.signature(the_wrapped_tool)` should show the real params) rather than assuming it.
 - `data.py` — mock data the tools read from (documents, records, etc.), same convention as every other type.
 - Boundary violations (e.g. an unrecognized document id, a non-URL passed to a URL-only tool) should `raise ValueError("...")` with a message that explains the boundary AND names the correct tool to use instead — FastMCP catches the exception and surfaces it to the client as a failed tool call automatically (and `logged_tool` logs the error before re-raising it, so it still reaches the client); no manual error-dict plumbing is needed (that convention is specific to this repo's own `common.errors.tool_error()`, which only applies to the Agentic Tool-Use type's raw Anthropic tool_use loop).
 - Add `mcp[cli]` to the root `pyproject.toml`'s `dependencies` the first time this type is used, if it isn't already there.
@@ -80,9 +80,9 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
 1. **Register the server** (run from inside this task folder, so it's scoped to just this task rather than every project on your machine):
    ```bash
    cd tasks/tool-design-mcp/task-&lt;N&gt;-&lt;slug&gt;
-   claude mcp add --transport stdio &lt;server-name&gt; -- uv run server.py
+   claude mcp add --transport stdio &lt;server-name&gt; -- uv run --directory "$(pwd)" server.py
    ```
-   This uses the default **local** scope, stored in `~/.claude.json` keyed to this exact directory — it won't appear in any other project, and won't touch this repo's own root `.mcp.json`.
+   This uses the default **local** scope, stored in `~/.claude.json` keyed to this exact directory — it won't appear in any other project, and won't touch this repo's own root `.mcp.json`. Always include `--directory "$(pwd)"` (evaluated by the shell at registration time, so it bakes in the absolute task-folder path) rather than the bare `uv run server.py` — without it, the stored command is relative and only resolves when Claude Code happens to spawn it with this folder as the process's cwd; from anywhere else `claude mcp list` reports `✘ Failed to connect` even though the registration itself is fine.
 2. **Verify it connected:**
    ```bash
    claude mcp list
