@@ -4,10 +4,10 @@ This section breaks down the exam domains and preparation tasks into separate fi
 
 ## Domains
 
-- [Agentic Architecture & Orchestration](./agentic-architecture.md)
-- [Tool Design & MCP Integration](./tool-design-mcp.md)
-- [Claude Code Configuration & Workflows](./claude-code-workflows.md)
-- [Prompt Engineering & Structured Output](./prompt-engineering.md)
-- [Context Management & Reliability](./context-management.md)
+- [Agentic Architecture & Orchestration](./1-agentic-architecture)
+- [Tool Design & MCP Integration](./2-tool-design-mcp)
+- [Claude Code Configuration & Workflows](./3-claude-code-workflows)
+- [Prompt Engineering & Structured Output](./4-prompt-engineering)
+- [Context Management & Reliability](./5-context-management)
 
-## [Preparation Tasks](./preparation-tasks.md)
+## [Preparation Tasks](./6-preparation-tasks)

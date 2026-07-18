@@ -6,11 +6,11 @@ According to this [exam guide](./wiki/exam-guide.pdf) claude suggested few tasks
 
 | Domain | Task | Topic |
 |---|---|---|
-| [Agentic Architecture & Orchestration](wiki/tasks/agentic-architecture.md) | [Task-1 - Multi tool agent escalation](tasks/agentic-architecture/task-1-multi-tool-agent-escalation/README.md) | A customer-support agent for an online electronics retailer |
-| [Agentic Architecture & Orchestration](wiki/tasks/agentic-architecture.md) | [Task-2 - Coordinator subagent orchestration](tasks/agentic-architecture/task-2-coordinator-subagent-orchestration/README.md) | A research coordinator deciding whether to stay remote-first |
-| [Agentic Architecture & Orchestration](wiki/tasks/agentic-architecture.md) | [Task-3 - Subagent invocation context passing](tasks/agentic-architecture/task-3-subagent-invocation-context-passing/README.md) | A trip-planning coordinator building a Lisbon travel itinerary |
-| [Agentic Architecture & Orchestration](wiki/tasks/agentic-architecture.md) | [Task-4 - Multi step enforcement handoff](tasks/agentic-architecture/task-4-multi-step-enforcement-handoff/README.md) | An IT helpdesk agent granting system access requests |
-| [Agentic Architecture & Orchestration](wiki/tasks/agentic-architecture.md) | [Task-5 - Hooks data normalization](tasks/agentic-architecture/task-5-hooks-data-normalization/README.md) | A shipment-tracking desk across multiple mock carrier systems |
+| [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-1 - Multi tool agent escalation](tasks/agentic-architecture/task-1-multi-tool-agent-escalation/README.md) | A customer-support agent for an online electronics retailer |
+| [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-2 - Coordinator subagent orchestration](tasks/agentic-architecture/task-2-coordinator-subagent-orchestration/README.md) | A research coordinator deciding whether to stay remote-first |
+| [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-3 - Subagent invocation context passing](tasks/agentic-architecture/task-3-subagent-invocation-context-passing/README.md) | A trip-planning coordinator building a Lisbon travel itinerary |
+| [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-4 - Multi step enforcement handoff](tasks/agentic-architecture/task-4-multi-step-enforcement-handoff/README.md) | An IT helpdesk agent granting system access requests |
+| [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-5 - Hooks data normalization](tasks/agentic-architecture/task-5-hooks-data-normalization/README.md) | A shipment-tracking desk across multiple mock carrier systems |
 
 # Setup
 

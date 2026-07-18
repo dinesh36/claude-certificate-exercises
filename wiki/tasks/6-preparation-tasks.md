@@ -11,7 +11,7 @@
 4. Implement a programmatic hook that intercepts tool calls to enforce a business rule (e.g., blocking operations above a threshold amount), redirecting to an escalation workflow when triggered.
 5. Test with multi-concern messages (e.g., requests involving multiple issues) and verify the agent decomposes the request, handles each concern, and synthesizes a unified response.
 
-**Domains reinforced:** [Domain 1](./agentic-architecture.md) (Agentic Architecture & Orchestration), [Domain 2](./tool-design-mcp.md) (Tool Design & MCP Integration), [Domain 5](./context-management.md) (Context Management & Reliability)
+**Domains reinforced:** [Domain 1](./1-agentic-architecture) (Agentic Architecture & Orchestration), [Domain 2](./2-tool-design-mcp) (Tool Design & MCP Integration), [Domain 5](./5-context-management) (Context Management & Reliability)
 
 ---
 
@@ -26,7 +26,7 @@
 4. Configure an MCP server in .mcp.json with environment variable expansion for credentials. Add a personal experimental MCP server in ~/.claude.json and verify both are available simultaneously.
 5. Test plan mode versus direct execution on tasks of varying complexity: a single-file bug fix, a multi-file library migration, and a new feature with multiple valid implementation approaches. Observe when plan mode provides value.
 
-**Domains reinforced:** [Domain 3](./claude-code-workflows.md) (Claude Code Configuration & Workflows), [Domain 2](./tool-design-mcp.md) (Tool Design & MCP Integration)
+**Domains reinforced:** [Domain 3](./3-claude-code-workflows) (Claude Code Configuration & Workflows), [Domain 2](./2-tool-design-mcp) (Tool Design & MCP Integration)
 
 ---
 
@@ -41,7 +41,7 @@
 4. Design a batch processing strategy: submit a batch of 100 documents using the Message Batches API, handle failures by custom_id, resubmit failed documents with modifications (e.g., chunking oversized documents), and calculate total processing time relative to SLA constraints.
 5. Implement a human review routing strategy: have the model output field-level confidence scores, route low-confidence extractions to human review, and analyze accuracy by document type and field to verify consistent performance.
 
-**Domains reinforced:** [Domain 4](./prompt-engineering.md) (Prompt Engineering & Structured Output), [Domain 5](./context-management.md) (Context Management & Reliability)
+**Domains reinforced:** [Domain 4](./4-prompt-engineering) (Prompt Engineering & Structured Output), [Domain 5](./5-context-management) (Context Management & Reliability)
 
 ---
 
@@ -56,7 +56,7 @@
 4. Implement error propagation: simulate a subagent timeout and verify the coordinator receives structured error context (failure type, attempted query, partial results). Test that the coordinator can proceed with partial results and annotate the final output with coverage gaps.
 5. Test with conflicting source data (e.g., two credible sources with different statistics) and verify the synthesis output preserves both values with source attribution rather than arbitrarily selecting one, and structures the report to distinguish well-established from contested findings.
 
-**Domains reinforced:** [Domain 1](./agentic-architecture.md) (Agentic Architecture & Orchestration), [Domain 2](./tool-design-mcp.md) (Tool Design & MCP Integration), [Domain 5](./context-management.md) (Context Management & Reliability)
+**Domains reinforced:** [Domain 1](./1-agentic-architecture) (Agentic Architecture & Orchestration), [Domain 2](./2-tool-design-mcp) (Tool Design & MCP Integration), [Domain 5](./5-context-management) (Context Management & Reliability)
 
 ---
 
