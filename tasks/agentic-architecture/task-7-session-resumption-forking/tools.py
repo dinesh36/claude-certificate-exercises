@@ -5,6 +5,10 @@ backs the resume path — a targeted update for just the module that changed,
 rather than re-running the baseline from scratch. _estimate_migration_effort
 backs the fork path — two forked sessions asking about different strategies
 get genuinely different effort/risk numbers from the same shared baseline.
+The Anthropic-provided memory tool (memory_20250818, see memory_tool.py) backs
+the restart path — a curated, explicitly-written/updated file the coordinator
+can read back in a brand-new conversation instead of trusting replayed raw
+tool results that may have gone stale.
 
 The only export is TOOLS: a list of {"schema": ..., "implementation": ...}
 entries. common/agent_loop.py extracts the schemas for the Anthropic API call
@@ -15,6 +19,7 @@ directly — nothing else in this module needs to be imported elsewhere.
 from common.errors import tool_error
 
 from data import CHANGES_SINCE_BASELINE, MIGRATION_ESTIMATES, MODULES
+from memory_tool import memory_tool
 
 
 def _list_modules() -> dict:
@@ -120,5 +125,9 @@ TOOLS = [
             },
         },
         "implementation": _estimate_migration_effort,
+    },
+    {
+        "schema": {"type": "memory_20250818", "name": "memory"},
+        "implementation": memory_tool,
     },
 ]
