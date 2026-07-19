@@ -152,6 +152,7 @@ def run_tool_loop(
     pre_hook: Optional[ToolPreHook] = None,
     post_hook: Optional[ToolPostHook] = None,
     history: Optional[list] = None,
+    initial_tool_choice: Optional[dict] = None,
 ) -> AgentResult:
     """Run the agentic loop.
 
@@ -167,6 +168,15 @@ def run_tool_loop(
     can resume or fork a session (Domain 1.7). Omitted (the default), this
     behaves exactly as a single fresh turn, unchanged from every other task.
 
+    `initial_tool_choice`, if given, constrains only the FIRST API call in
+    this loop to a specific `tool_choice` (Domain 2.3) — e.g.
+    `{"type": "tool", "name": "extract_metadata"}` to force one specific tool
+    before any other reasoning, or `{"type": "any"}` to guarantee some tool
+    is called rather than a text reply. Every subsequent turn in the same
+    loop omits `tool_choice` (Anthropic's own default, "auto"), so the model
+    reasons freely once the forced step is done. Omitted (the default), every
+    turn uses "auto", unchanged from every other task.
+
     The full message transcript (every user, assistant, and tool_result turn)
     is appended as it happens to a formatted (pretty-printed) JSON log file —
     one entry per turn, so the file is a complete audit trail even if the
@@ -180,14 +190,14 @@ def run_tool_loop(
     messages.append({"role": "user", "content": user_message})
     _append_log(messages[-1])
 
+    is_first_turn = True
     while True:
-        response = client.messages.create(
-            model=model,
-            max_tokens=max_tokens,
-            system=system,
-            tools=tool_schemas,
-            messages=messages,
-        )
+        create_kwargs = dict(model=model, max_tokens=max_tokens, system=system, tools=tool_schemas, messages=messages)
+        if is_first_turn and initial_tool_choice is not None:
+            create_kwargs["tool_choice"] = initial_tool_choice
+        is_first_turn = False
+
+        response = client.messages.create(**create_kwargs)
         messages.append({"role": "assistant", "content": response.content})
         _append_log({**messages[-1], "stop_reason": response.stop_reason})
 

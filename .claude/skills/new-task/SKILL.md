@@ -36,3 +36,12 @@ Before writing anything, resolve:
 - **Type** — look up the domain in the table above. For Agentic Architecture & Orchestration, Tool Design & MCP Integration, and Claude Code Configuration & Workflows, the type is already established by an existing category file. For Prompt Engineering & Structured Output and Context Management & Reliability, there is no established type yet — treat it as an open design question per the note above rather than defaulting to another domain's shape.
 
 Once the type is known, switch to that type's file under `categories/` and follow it through to the end (scenario confirmation, scaffolding, README, verification, and updating both `CLAUDE.md` and root `README.md`'s Implemented Tasks tables). Do not duplicate those steps here.
+
+## 2. README writing style (shared across every type)
+
+Every category's README template cares about content coverage (every Knowledge-of/Skills-in bullet, cited and evidenced); this section is about how to *write* that content, regardless of type:
+
+- **No long paragraphs.** If a paragraph would run more than 2-3 sentences, break it into short paragraphs or a bulleted list instead. A wall of text hides the one detail a reader actually needs.
+- **Keep the language simple.** Prefer short, plain sentences over long ones stitched together with dashes, semicolons, or nested clauses. Say the thing once, directly, instead of qualifying it three times in the same sentence.
+- **Bullets over inline lists.** When a sentence is naming 3+ things (steps, examples, verified outcomes), put them in a bulleted list rather than a comma-separated run-on.
+- This applies to every prose section of the README (`# Subject`, `# How to run`/`# How to connect and run`/`# How to verify`, and the explanatory sentences under each Implementation Info bullet) — not to the pasted code snippets themselves, which stay verbatim.

@@ -36,7 +36,7 @@ The task folder **is** a nested sample project — everything under it is the gr
 
 <readme_template>
   <purpose>
-    Same purpose as Agentic Tool-Use Tasks' README: prove, with the real config files pasted in, that every Knowledge-of and Skills-in bullet for the covered task statement is actually implemented — plus prove the sample is genuinely testable by documenting prompts a reader can fire at a live Claude Code session.
+    Same purpose as Agentic Tool-Use Tasks' README: prove, with the real config files pasted in, that every Knowledge-of and Skills-in bullet for the covered task statement is actually implemented — plus prove the sample is genuinely testable by documenting prompts a reader can fire at a live Claude Code session. Follow `SKILL.md`'s "README writing style" section for how to write the prose — short paragraphs, bullets over run-on sentences, simple language.
   </purpose>
 
   <section id="1" name="task_statement_header">
