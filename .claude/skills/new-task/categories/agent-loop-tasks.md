@@ -45,7 +45,7 @@ If the task needs a genuinely new reusable primitive (e.g. multi-agent coordinat
 
 <readme_template>
   <purpose>
-    The README.md is the graded artifact: it proves, with real code snippets, that every Knowledge-of and Skills-in bullet for the covered task statement(s) is actually implemented. A reviewer should be able to open the README and see the exact code satisfying each bullet without needing to open the source files.
+    The README.md is the graded artifact: it proves, with real code snippets, that every Knowledge-of and Skills-in bullet for the covered task statement(s) is actually implemented. A reviewer should be able to open the README and see the exact code satisfying each bullet without needing to open the source files. Follow `SKILL.md`'s "README writing style" section for how to write the prose — short paragraphs, bullets over run-on sentences, simple language.
   </purpose>
 
   <section id="1" name="task_statement_header">

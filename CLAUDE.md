@@ -31,6 +31,7 @@ One row per completed task, added only once it's actually built and verified —
 | [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture) | [Task-7 - Session resumption forking](tasks/agentic-architecture/task-7-session-resumption-forking/README.md) | A legacy-codebase migration coordinator managing resumable, forkable sessions |
 | [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp) | [Task-1 - Tool interface clarity boundaries](tasks/tool-design-mcp/task-1-tool-interface-clarity-boundaries/README.md) | A dev-workflow MCP server fetching user stories and planning implementation work |
 | [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp) | [Task-2 - Structured error responses](tasks/tool-design-mcp/task-2-structured-error-responses/README.md) | A warehouse-fulfillment MCP server exercising every error category |
+| [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp) | [Task-3 - Tool distribution and choice](tasks/tool-design-mcp/task-3-tool-distribution-and-choice/README.md) | An insurance-claims-desk MCP server orchestrating role-scoped subagents |
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-1 - CLAUDE.md hierarchy scoping](tasks/claude-code-workflows/task-1-claude-md-hierarchy-scoping/README.md) | A fintech billing monorepo with per-package CLAUDE.md conventions |
 
 ## Repository Layout
