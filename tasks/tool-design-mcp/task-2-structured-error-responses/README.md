@@ -29,7 +29,9 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
    cd tasks/tool-design-mcp/task-2-structured-error-responses
    claude mcp add --transport stdio warehouse-fulfillment -- uv run --directory "$(pwd)" server.py
    ```
-   This uses the default **local** scope, stored in `~/.claude.json` keyed to this exact directory — it won't appear in any other project, and won't touch this repo's own root `.mcp.json`. The `--directory "$(pwd)"` bakes the absolute task-folder path into the registered command itself — without it, the stored command is the bare relative `uv run server.py`, which only resolves when Claude Code happens to spawn it with this folder as the process's cwd, so `claude mcp list` reports `✘ Failed to connect` from anywhere else even though the registration itself is fine.
+   This uses the default **local** scope, stored in `~/.claude.json` keyed to this exact directory. It won't appear in any other project, and won't touch this repo's own root `.mcp.json`.
+
+   The `--directory "$(pwd)"` bakes the absolute task-folder path into the registered command itself. Without it, the stored command is the bare relative `uv run server.py`, which only resolves when Claude Code happens to spawn it with this folder as the process's cwd. `claude mcp list` would then report `✘ Failed to connect` from anywhere else — even though the registration itself is fine.
 2. **Verify it connected:**
    ```bash
    claude mcp list
@@ -92,11 +94,18 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
   raise StructuredToolError("transient", True, "All carrier regions are unreachable after local retries; safe to retry this call.")
   ```
 
-  Three of the four category names appear as literal, distinct raise sites across the server's tools (`validation` in `search_inventory`/`reserve_stock`/unknown-ID checks, `permission` in `ship_order`, `transient` in `check_carrier_status`); a business-rule violation (requesting more stock than exists) also raises `validation` — see the next bullet for why there's no separate `"business"` literal.
+  Three of the four category names appear as literal, distinct raise sites across the server's tools: `validation` in `search_inventory`/`reserve_stock`/unknown-ID checks, `permission` in `ship_order`, and `transient` in `check_carrier_status`. A business-rule violation (requesting more stock than exists) also raises `validation` — see the next bullet for why there's no separate `"business"` literal.
 
 - **Why uniform error responses (generic "Operation failed") prevent the agent from making appropriate recovery decisions** — verified live, `README.md`
 
-  The five live prompts above produced five *different* agent reactions — "no matches" (not a failure), "non-retryable, reduce the quantity," "non-retryable, need a real manager ID," "partial success, one region down," "retryable, try again shortly" — none of which would have been possible from a single generic `"Operation failed"` string. The structured `errorCategory`/`isRetryable` fields are what let the agent choose a different next action for each one instead of reacting identically to all of them.
+  The five live prompts above produced five *different* agent reactions:
+  - "No matches" (not a failure)
+  - "Non-retryable, reduce the quantity"
+  - "Non-retryable, need a real manager ID"
+  - "Partial success, one region down"
+  - "Retryable, try again shortly"
+
+  None of these would have been possible from a single generic `"Operation failed"` string. The structured `errorCategory`/`isRetryable` fields are what let the agent choose a different next action for each one, instead of reacting identically to all of them.
 
 - **The difference between retryable and non-retryable errors, and how returning structured metadata prevents wasted retry attempts** — `server.py`
 
@@ -109,7 +118,9 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
       )
   ```
 
-  `check_carrier_status`'s all-regions-down case is the only `isRetryable: True` raise in the server — every validation/permission raise is `False`, since retrying an unknown SKU or an unapproved manager ID with the exact same arguments can never succeed. Verified live: the agent used exactly this distinction, recommending a retry only for the transient case and explicitly saying "retrying... won't help" for the validation and permission cases.
+  `check_carrier_status`'s all-regions-down case is the only `isRetryable: True` raise in the server. Every validation/permission raise is `False`, since retrying an unknown SKU or an unapproved manager ID with the exact same arguments can never succeed.
+
+  Verified live: the agent used exactly this distinction, recommending a retry only for the transient case and explicitly saying "retrying... won't help" for the validation and permission cases.
 
 - **Returning structured error metadata including errorCategory (transient/validation/permission), isRetryable boolean, and human-readable descriptions** — `common/errors.py`
 
@@ -135,7 +146,9 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
   )
   ```
 
-  `reserve_stock`'s insufficient-stock case is `isRetryable: False` with a description written for a human to read directly ("Reduce the quantity or check back after the next restock"), not a technical exception trace — verified live: the agent relayed this near verbatim rather than paraphrasing it into something more technical.
+  `reserve_stock`'s insufficient-stock case is `isRetryable: False` with a description written for a human to read directly ("Reduce the quantity or check back after the next restock"), not a technical exception trace.
+
+  Verified live: the agent relayed this near verbatim rather than paraphrasing it into something more technical.
 
 - **Implementing local error recovery within subagents for transient failures, propagating to the coordinator only errors that cannot be resolved locally along with partial results and what was attempted** — `server.py`
 
@@ -149,7 +162,7 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
   return {"order_id": order_id, "results": results, "partial": bool(unresolved), "unresolved": unresolved}
   ```
 
-  `check_carrier_status` retries each region locally and only surfaces the ones that never recovered — as a normal, successful `partial` result carrying both what succeeded and exactly what was attempted for what didn't, rather than failing the whole call over one bad region. Only when literally nothing recovered does it escalate to a raised (transient, retryable) error.
+  `check_carrier_status` retries each region locally and only surfaces the ones that never recovered. It returns a normal, successful `partial` result carrying both what succeeded and exactly what was attempted for what didn't, rather than failing the whole call over one bad region. Only when literally nothing recovered does it escalate to a raised (transient, retryable) error.
 
 - **Distinguishing between access failures (needing retry decisions) and valid empty results (representing successful queries with no matches)** — `server.py`
 
@@ -162,4 +175,6 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
   return {"query": query, "matches": matches, "count": len(matches)}
   ```
 
-  A blank query is a genuine validation failure (raised); a well-formed query that simply matches nothing returns normally with an empty `matches` list and `count: 0` — verified live: searching for "drone" (no such product) was reported as "no matches," never as an error the agent felt it should retry or escalate.
+  A blank query is a genuine validation failure (raised). A well-formed query that simply matches nothing returns normally with an empty `matches` list and `count: 0`.
+
+  Verified live: searching for "drone" (no such product) was reported as "no matches," never as an error the agent felt it should retry or escalate.

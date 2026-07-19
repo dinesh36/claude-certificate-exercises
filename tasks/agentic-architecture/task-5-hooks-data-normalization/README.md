@@ -12,7 +12,7 @@
 
 # Subject
 A shipment-tracking desk that checks package status across three mock carrier systems and can issue shipping credits for delivery problems.
-- Each carrier tool returns delivery status in a different raw shape (Unix epoch + numeric code, ISO 8601 + free-text status, a custom date string + single-letter flag) — a PostToolUse hook rewrites every one of them into one consistent shape before the model ever sees it.
+- Each carrier tool returns delivery status in a different raw shape: Unix epoch + numeric code, ISO 8601 + free-text status, or a custom date string + single-letter flag. A PostToolUse hook rewrites every one of them into one consistent shape before the model ever sees it.
 - `issue_shipping_credit` is blocked by a separate PreToolUse hook above a $75 threshold, redirecting to a human claims-desk escalation with a structured handoff instead of leaving the limit to the prompt.
 
 ---
@@ -28,7 +28,9 @@ uv run tasks/agentic-architecture/task-5-hooks-data-normalization/main.py "Can y
 uv run tasks/agentic-architecture/task-5-hooks-data-normalization/main.py "My package RC-2002 was delayed. Can you issue a \$50 credit for the inconvenience?"
 uv run tasks/agentic-architecture/task-5-hooks-data-normalization/main.py "My package LG-3003 had an issue. Please issue a \$150 credit."
 ```
-The first (default) scenario checks a FedEx-style package and a regional-courier package in one turn — both raw formats (Unix epoch + numeric code, and ISO 8601 + free-text status) come back normalized into the same shape. The second requests a credit under the $75 threshold, which is issued directly. The third requests a $150 credit, which the policy hook blocks regardless of the package's legacy-carrier date format, and the agent escalates instead of retrying.
+- **First (default) scenario:** checks a FedEx-style package and a regional-courier package in one turn. Both raw formats (Unix epoch + numeric code, and ISO 8601 + free-text status) come back normalized into the same shape.
+- **Second scenario:** requests a credit under the $75 threshold, which is issued directly.
+- **Third scenario:** requests a $150 credit. The policy hook blocks it regardless of the package's legacy-carrier date format, and the agent escalates instead of retrying.
 
 ---
 
@@ -43,7 +45,7 @@ The first (default) scenario checks a FedEx-style package and a regional-courier
       result = post_hook(block.name, block.input, result)
   ```
 
-  `_execute_tool_block` runs `post_hook` on every successful dispatch result before it's ever turned into a `tool_result` block — `main.py` wires `normalize.py`'s `normalize_carrier_result` in as `post_hook=normalize_carrier_result`.
+  `_execute_tool_block` runs `post_hook` on every successful dispatch result, before it's ever turned into a `tool_result` block. `main.py` wires `normalize.py`'s `normalize_carrier_result` in as `post_hook=normalize_carrier_result`.
 
 - **Hook patterns that intercept outgoing tool calls to enforce compliance rules (e.g., blocking refunds above a threshold)** — `common/agent_loop.py`, `policy.py`
 
@@ -55,7 +57,7 @@ The first (default) scenario checks a FedEx-style package and a regional-courier
       result = dispatcher(block.name, block.input)
   ```
 
-  `pre_hook` runs before the dispatcher and can short-circuit the call entirely — `policy.py`'s `enforce_credit_threshold` uses this to block `issue_shipping_credit` above `CREDIT_APPROVAL_THRESHOLD` before it ever executes.
+  `pre_hook` runs before the dispatcher and can short-circuit the call entirely. `policy.py`'s `enforce_credit_threshold` uses this to block `issue_shipping_credit` above `CREDIT_APPROVAL_THRESHOLD`, before it ever executes.
 
 - **The distinction between hooks for deterministic guarantees vs. prompt instructions for probabilistic compliance** — `main.py`, `policy.py`
 
@@ -64,7 +66,7 @@ The first (default) scenario checks a FedEx-style package and a regional-courier
   "that happens, do not retry issue_shipping_credit, escalate to escalate_to_claims_desk instead."
   ```
 
-  The prompt *asks* the model to respect the threshold and to stop retrying once blocked, but `enforce_credit_threshold` is what actually guarantees it — verified live: the $150 request was blocked by the hook regardless of what the model intended, and the model never got a chance to bypass it by retrying.
+  The prompt *asks* the model to respect the threshold and stop retrying once blocked. `enforce_credit_threshold` is what actually guarantees it. Verified live: the $150 request was blocked by the hook regardless of what the model intended, and the model never got a chance to bypass it by retrying.
 
 - **PostToolUse hooks normalizing heterogeneous data formats (Unix timestamps, ISO 8601, numeric status codes) from different tools** — `normalize.py`
 
@@ -79,7 +81,12 @@ The first (default) scenario checks a FedEx-style package and a regional-courier
       parsed = datetime.strptime(result["date_str"], "%m-%d-%Y %I:%M %p").replace(tzinfo=timezone.utc)
   ```
 
-  Three genuinely different raw shapes (Unix epoch + numeric code; ISO 8601 + free-text status; a custom `MM-DD-YYYY HH:MM AM/PM` string + single-letter flag) all collapse into one `{tracking_id, carrier, status, last_update}` shape — verified live in the default scenario, where the FedEx and regional-courier results both came back with an identical field structure and status vocabulary.
+  Three genuinely different raw shapes all collapse into one `{tracking_id, carrier, status, last_update}` shape:
+  - Unix epoch + numeric code
+  - ISO 8601 + free-text status
+  - A custom `MM-DD-YYYY HH:MM AM/PM` string + single-letter flag
+
+  Verified live in the default scenario: the FedEx and regional-courier results both came back with an identical field structure and status vocabulary.
 
 - **Tool call interception hooks blocking policy-violating actions and redirecting to alternative workflows (e.g. human escalation)** — `policy.py`, `tools.py`
 
@@ -92,7 +99,7 @@ The first (default) scenario checks a FedEx-style package and a regional-courier
   )
   ```
 
-  The blocked error explicitly names the alternative workflow (`escalate_to_claims_desk`) — verified live: after the $150 credit was blocked, the agent called `escalate_to_claims_desk` with a structured summary instead of retrying `issue_shipping_credit`.
+  The blocked error explicitly names the alternative workflow (`escalate_to_claims_desk`). Verified live: after the $150 credit was blocked, the agent called `escalate_to_claims_desk` with a structured summary, instead of retrying `issue_shipping_credit`.
 
 - **Choosing hooks over prompt-based enforcement when business rules require guaranteed compliance** — `common/agent_loop.py`
 
@@ -105,4 +112,4 @@ The first (default) scenario checks a FedEx-style package and a regional-courier
   formats from different tools into one shape)."""
   ```
 
-  Both hook points are enforced in code (`common/agent_loop.py`) rather than left to the system prompt — the module docstring states this is precisely why the mechanism exists as a shared, reusable primitive rather than a task-specific prompt convention: business rules that must hold every time belong in a hook, not a request to the model.
+  Both hook points are enforced in code (`common/agent_loop.py`), not left to the system prompt. The module docstring states why this exists as a shared, reusable primitive rather than a task-specific prompt convention: business rules that must hold every time belong in a hook, not a request to the model.

@@ -13,7 +13,7 @@
 ---
 
 # Subject
-A fintech billing monorepo sample project — `packages/billing_api` (a payment-intake REST service) and `packages/ledger_worker` (an async ledger-posting worker) — used to demonstrate CLAUDE.md's configuration hierarchy, `@import` modularity, and `.claude/rules/` as an alternative to one monolithic file.
+A fintech billing monorepo sample project with two packages: `billing_api` (a payment-intake REST service) and `ledger_worker` (an async ledger-posting worker). It demonstrates CLAUDE.md's configuration hierarchy, `@import` modularity, and `.claude/rules/` as an alternative to one monolithic file.
 - This folder's own root `CLAUDE.md` is the sample's project-level config; each package's `CLAUDE.md` is a directory-level file that adds package-specific conventions on top of it, never replacing it.
 - Shared conventions live in `.claude/rules/*.md` and are pulled into whichever package's `CLAUDE.md` actually needs them via `@import`, instead of being duplicated inline or crammed into one giant file.
 - The "How to verify" section below also walks through diagnosing a hierarchy misconfiguration — conventions mistakenly placed in a personal `~/.claude/CLAUDE.md` instead of the tracked project config — using the `/memory` command.
@@ -26,22 +26,28 @@ This task has no script to run — it's a set of Claude Code configuration files
 ```
 What testing conventions apply to files under packages/billing_api?
 ```
-Expected: it cites the `.claude/rules/testing.md` conventions (pytest, mock external I/O, 85% coverage) even though `packages/billing_api/CLAUDE.md` never mentions testing itself — proving the project-level file's rules are inherited by every directory beneath it, not just the ones that explicitly repeat them.
+Expected: it cites the `.claude/rules/testing.md` conventions (pytest, mock external I/O, 85% coverage), even though `packages/billing_api/CLAUDE.md` never mentions testing itself. This proves the project-level file's rules are inherited by every directory beneath it, not just the ones that explicitly repeat them.
 
 ```
 What conventions apply specifically to packages/billing_api that don't apply to packages/ledger_worker?
 ```
-Expected: it cites `api-conventions.md`'s REST rules (`/v1/` versioning, `Idempotency-Key` header, the `{error_code, message}` error shape) and explicitly says these don't apply to `ledger_worker`, whose own `CLAUDE.md` imports `queue-conventions.md` instead — proving `@import` is being used to selectively scope conventions per package rather than sharing one undifferentiated file.
+Expected: it cites `api-conventions.md`'s REST rules (`/v1/` versioning, `Idempotency-Key` header, the `{error_code, message}` error shape). It explicitly says these don't apply to `ledger_worker`, whose own `CLAUDE.md` imports `queue-conventions.md` instead. This proves `@import` is being used to selectively scope conventions per package, rather than sharing one undifferentiated file.
 
 ```
 /memory
 ```
-Run this with your working directory set to `packages/billing_api`. Expected: the listed memory files include `packages/billing_api/CLAUDE.md`, this task's own root `CLAUDE.md`, and (further up the tree) the outer certification repo's root `CLAUDE.md` — but **not** `packages/ledger_worker/CLAUDE.md`. This is the concrete, checkable way to confirm which files are actually in scope for a given directory rather than assuming from the folder layout.
+Run this with your working directory set to `packages/billing_api`. Expected: the listed memory files include:
+- `packages/billing_api/CLAUDE.md`
+- This task's own root `CLAUDE.md`
+- Further up the tree, the outer certification repo's root `CLAUDE.md`
+- **Not** `packages/ledger_worker/CLAUDE.md`
+
+This is the concrete, checkable way to confirm which files are actually in scope for a given directory, instead of assuming from the folder layout.
 
 ```
 A new engineer on the ledger_worker package says Claude Code isn't applying our queue-conventions rules for them, even though it works fine on my machine and the file is committed at packages/ledger_worker/CLAUDE.md. What's the most likely cause, and how do we fix it?
 ```
-Expected: it should reason that the engineer likely has a conflicting or overriding personal `~/.claude/CLAUDE.md` (or is running from a different working directory than they think), since `~/.claude/CLAUDE.md` is user-level and never shared via version control — so "committed at the project level" doesn't guarantee it's the *only* thing loaded for them. The fix is to have them run `/memory` themselves to see exactly what's loaded on their machine, rather than assuming the repo state alone explains their behavior.
+Expected: it should reason that the engineer likely has a conflicting or overriding personal `~/.claude/CLAUDE.md`, or is running from a different working directory than they think. `~/.claude/CLAUDE.md` is user-level and never shared via version control, so "committed at the project level" doesn't guarantee it's the *only* thing loaded for them. The fix is to have them run `/memory` themselves to see exactly what's loaded on their machine, instead of assuming the repo state alone explains their behavior.
 
 ---
 
@@ -58,7 +64,7 @@ Expected: it should reason that the engineer likely has a conflicting or overrid
   layering this task is teaching, not something to work around.
   ```
 
-  This folder's `CLAUDE.md` is genuinely project-level for the sample, `packages/billing_api/CLAUDE.md` and `packages/ledger_worker/CLAUDE.md` are genuinely directory-level, and (as the excerpt says) the certification repo's own root `CLAUDE.md` above this folder is a live, real project-level layer above *this* sample's project level — three real layers stacked, not a diagram.
+  This folder's `CLAUDE.md` is genuinely project-level for the sample. `packages/billing_api/CLAUDE.md` and `packages/ledger_worker/CLAUDE.md` are genuinely directory-level. As the excerpt says, the certification repo's own root `CLAUDE.md` above this folder is a live, real project-level layer above *this* sample's project level. That's three real layers stacked, not a diagram.
 
 - **That user-level settings apply only to that user — instructions in ~/.claude/CLAUDE.md are not shared via version control** — `README.md` ("How to verify" section)
 
@@ -68,7 +74,7 @@ Expected: it should reason that the engineer likely has a conflicting or overrid
   machine and the file is committed at packages/ledger_worker/CLAUDE.md.
   ```
 
-  This prompt is designed so the only coherent explanation is the user-level/project-level distinction: the committed file is version-controlled and identical for everyone, so a per-engineer difference in behavior points at something outside git — a personal `~/.claude/CLAUDE.md` (or a differing working directory) that never reaches teammates.
+  This prompt is designed so the only coherent explanation is the user-level/project-level distinction. The committed file is version-controlled and identical for everyone, so a per-engineer difference in behavior points at something outside git — a personal `~/.claude/CLAUDE.md`, or a differing working directory, that never reaches teammates.
 
 - **The @import syntax for referencing external files to keep CLAUDE.md modular** — `packages/billing_api/CLAUDE.md`
 
@@ -79,7 +85,7 @@ Expected: it should reason that the engineer likely has a conflicting or overrid
   @../../.claude/rules/api-conventions.md
   ```
 
-  The package's REST conventions live in their own file and are pulled in with `@import` rather than being pasted inline into the package's `CLAUDE.md`.
+  The package's REST conventions live in their own file, and are pulled in with `@import` — not pasted inline into the package's `CLAUDE.md`.
 
 - **.claude/rules/ directory for organizing topic-specific rule files as an alternative to a monolithic CLAUDE.md** — `.claude/rules/testing.md`, `.claude/rules/api-conventions.md`, `.claude/rules/queue-conventions.md`
 
@@ -90,11 +96,11 @@ Expected: it should reason that the engineer likely has a conflicting or overrid
   - Every payment-mutating endpoint requires an `Idempotency-Key` header...
   ```
 
-  Three separate topic files (testing, API, queue) instead of one monolithic `CLAUDE.md` holding every convention for both packages — each is short, single-purpose, and independently readable.
+  Three separate topic files — testing, API, queue — instead of one monolithic `CLAUDE.md` holding every convention for both packages. Each is short, single-purpose, and independently readable.
 
 - **Diagnosing configuration hierarchy issues (e.g., a new team member not receiving instructions because they're in user-level rather than project-level configuration)** — `README.md` ("How to verify" section, same diagnostic prompt as above)
 
-  The prompt and its expected answer are themselves the demonstrated skill: given a symptom (rules not applying for one teammate despite a committed project file), the correct diagnosis routes through the hierarchy (check for a personal `~/.claude/CLAUDE.md` override, verify with `/memory`) rather than re-checking the already-committed file.
+  The prompt and its expected answer are themselves the demonstrated skill. Given a symptom — rules not applying for one teammate despite a committed project file — the correct diagnosis routes through the hierarchy: check for a personal `~/.claude/CLAUDE.md` override, then verify with `/memory`. It doesn't just re-check the already-committed file.
 
 - **Using @import to selectively include relevant standards files in each package's CLAUDE.md based on maintainer domain knowledge** — `packages/billing_api/CLAUDE.md`, `packages/ledger_worker/CLAUDE.md`
 
@@ -105,7 +111,7 @@ Expected: it should reason that the engineer likely has a conflicting or overrid
   instead).
   ```
 
-  Each package's `CLAUDE.md` explicitly imports only the rules file relevant to its own domain (REST vs. queue semantics) and explains why it deliberately does *not* import the other package's file — selective inclusion, not blanket sharing.
+  Each package's `CLAUDE.md` explicitly imports only the rules file relevant to its own domain — REST vs. queue semantics — and explains why it deliberately does *not* import the other package's file. That's selective inclusion, not blanket sharing.
 
 - **Splitting large CLAUDE.md files into focused topic-specific files in .claude/rules/ (e.g., testing.md, api-conventions.md, deployment.md)** — `.claude/rules/testing.md`, `.claude/rules/api-conventions.md`, `.claude/rules/queue-conventions.md`
 
@@ -116,7 +122,7 @@ Expected: it should reason that the engineer likely has a conflicting or overrid
     module layout.
   ```
 
-  `testing.md` holds only testing conventions, `api-conventions.md` only REST conventions, `queue-conventions.md` only queue/worker conventions — each file stays focused enough to read in isolation, mirroring the task statement's own `testing.md`/`api-conventions.md`/`deployment.md` example split.
+  `testing.md` holds only testing conventions. `api-conventions.md` holds only REST conventions. `queue-conventions.md` holds only queue/worker conventions. Each file stays focused enough to read in isolation, mirroring the task statement's own `testing.md`/`api-conventions.md`/`deployment.md` example split.
 
 - **Using the /memory command to verify which memory files are loaded and diagnose inconsistent behavior across sessions** — `README.md` ("How to verify" section, `/memory` prompt)
 
@@ -127,4 +133,4 @@ Expected: it should reason that the engineer likely has a conflicting or overrid
   repo's root CLAUDE.md — but not packages/ledger_worker/CLAUDE.md.
   ```
 
-  `/memory` is the literal, checkable way to confirm which files are in scope for a given working directory — used here both to prove correct scoping (`billing_api`'s session doesn't see `ledger_worker`'s file) and, in the diagnostic prompt above, as the tool a teammate would run to explain their own inconsistent behavior.
+  `/memory` is the literal, checkable way to confirm which files are in scope for a given working directory. It's used here two ways: to prove correct scoping (`billing_api`'s session doesn't see `ledger_worker`'s file), and, in the diagnostic prompt above, as the tool a teammate would run to explain their own inconsistent behavior.

@@ -29,7 +29,9 @@ uv run tasks/agentic-architecture/task-4-multi-step-enforcement-handoff/main.py 
 uv run tasks/agentic-architecture/task-4-multi-step-enforcement-handoff/main.py "Hi, I'm Jamie Lopez (EMP-2). I need access to Salesforce."
 uv run tasks/agentic-architecture/task-4-multi-step-enforcement-handoff/main.py "Hi, I'm Alex Kim (EMP-1). I need access to prod-admin."
 ```
-The first (default) scenario has manager approval already on file for a standard-tier system, so `verify_manager_approval` confirms it and `grant_access` succeeds, alongside the unrelated `check_access_level` lookup in the same reply. The second has no approval on file, so `verify_manager_approval` reports `approved: false` and the agent escalates without ever calling `grant_access`. The third has approval on file but for a restricted-tier system, so `grant_access` is blocked by the policy hook regardless and the agent escalates — proving the tier check is enforced even when the prerequisite was otherwise satisfied.
+- **First (default) scenario:** manager approval is already on file for a standard-tier system. `verify_manager_approval` confirms it, `grant_access` succeeds, and the unrelated `check_access_level` lookup runs in the same reply.
+- **Second scenario:** no approval is on file. `verify_manager_approval` reports `approved: false`, and the agent escalates without ever calling `grant_access`.
+- **Third scenario:** approval is on file, but for a restricted-tier system. `grant_access` is blocked by the policy hook regardless, and the agent escalates — proving the tier check is enforced even when the prerequisite was otherwise satisfied.
 
 ---
 
@@ -48,7 +50,7 @@ The first (default) scenario has manager approval already on file for a standard
       return None
   ```
 
-  The system prompt also *asks* the model to verify before granting, but `enforce_access_prerequisite` is the actual gate — passed to `run_tool_loop` as `pre_hook=enforce_access_prerequisite` in `main.py`, it runs before every tool call and can block `grant_access` outright, regardless of what the prompt says or whether the model follows it.
+  The system prompt also *asks* the model to verify before granting, but `enforce_access_prerequisite` is the actual gate. Passed to `run_tool_loop` as `pre_hook=enforce_access_prerequisite` in `main.py`, it runs before every tool call and can block `grant_access` outright — regardless of what the prompt says, or whether the model follows it.
 
 - **Deterministic compliance where prompt instructions alone have non-zero failure rate** — `policy.py`, `tools.py`
 
@@ -57,7 +59,7 @@ The first (default) scenario has manager approval already on file for a standard
       return tool_error("permission", False, f"'{system}' is a restricted-tier system — it always requires human security-team sign-off ...")
   ```
 
-  Restricted-tier systems are blocked unconditionally by the hook — verified live: even when `verify_manager_approval` reports `approved: true` for a restricted system (`prod-admin`), `grant_access` is still blocked, because this rule is enforced in code against `SYSTEM_TIERS`, not left to the model to remember or infer from the prompt.
+  Restricted-tier systems are blocked unconditionally by the hook. Verified live: even when `verify_manager_approval` reports `approved: true` for a restricted system (`prod-admin`), `grant_access` is still blocked. This rule is enforced in code against `SYSTEM_TIERS` — it isn't left to the model to remember or infer from the prompt.
 
 - **Structured handoff protocols (customer/employee details, root cause, recommended action)** — `tools.py`
 
@@ -71,7 +73,7 @@ The first (default) scenario has manager approval already on file for a standard
       }
   ```
 
-  Every escalation carries the employee ID, a root-cause explanation, and a recommended action — verified live in both escalation scenarios, where the agent filled in a specific root cause (e.g. "no manager approval on file" vs. "restricted-tier system") rather than a generic failure message.
+  Every escalation carries the employee ID, a root-cause explanation, and a recommended action. Verified live in both escalation scenarios: the agent filled in a specific root cause (e.g. "no manager approval on file" vs. "restricted-tier system"), not a generic failure message.
 
 - **Programmatic prerequisites blocking a downstream tool call until a prior step has completed** — `tools.py`, `policy.py`
 
@@ -85,7 +87,7 @@ The first (default) scenario has manager approval already on file for a standard
           verified_approvals.add((employee_id, system))
   ```
 
-  `grant_access` is only ever unblocked once `verify_manager_approval` has actually run and recorded the `(employee_id, system)` pair in `verified_approvals` — the direct analog of "blocking process_refund until get_customer has returned a verified customer ID." This is a real record of what happened, not something the model's tool-call ordering could fake.
+  `grant_access` is only ever unblocked once `verify_manager_approval` has actually run and recorded the `(employee_id, system)` pair in `verified_approvals`. This is the direct analog of "blocking process_refund until get_customer has returned a verified customer ID" — a real record of what happened, not something the model's tool-call ordering could fake.
 
 - **Decomposing multi-concern requests and investigating each in parallel before a unified synthesis** — `main.py`
 
@@ -93,7 +95,7 @@ The first (default) scenario has manager approval already on file for a standard
   "Decompose multi-part requests into distinct concerns and address each one. "
   ```
 
-  Verified live in the default scenario: the access request and the unrelated "what do I currently have" question are dispatched as `verify_manager_approval` and `check_access_level` in the same turn (running concurrently, per `common/agent_loop.py`), then resolved together in one final reply.
+  Verified live in the default scenario: the access request and the unrelated "what do I currently have" question are dispatched as `verify_manager_approval` and `check_access_level` in the same turn. They run concurrently, per `common/agent_loop.py`, then get resolved together in one final reply.
 
 - **Structured handoff summaries when escalating to humans who lack the conversation transcript** — `tools.py`, `policy.py`
 
@@ -102,4 +104,4 @@ The first (default) scenario has manager approval already on file for a standard
   "blocked by policy (no approval on file, or a restricted-tier system) ..."
   ```
 
-  The `escalate_to_security_team` tool description ties escalation directly to the two ways `policy.py`'s hook can block `grant_access`, so the handoff summary's `root_cause` field can always name the specific policy reason rather than a vague "couldn't complete this."
+  The `escalate_to_security_team` tool description ties escalation directly to the two ways `policy.py`'s hook can block `grant_access`. The handoff summary's `root_cause` field can always name the specific policy reason, instead of a vague "couldn't complete this."
