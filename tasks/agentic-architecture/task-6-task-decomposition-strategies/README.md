@@ -13,7 +13,7 @@
 # Subject
 A manufacturing quality-control coordinator that picks its decomposition strategy to fit the request rather than always following the same script.
 - Naming specific batch IDs triggers a FIXED pipeline: one `inspect_batch` call per named batch, then a single `run_cross_batch_defect_trend` integration pass over all of them together.
-- Describing an open-ended customer-reported product defect (no batch IDs) triggers a DYNAMIC path instead: `scope_customer_defect_report` runs first, and only the root-cause areas it actually flags get a follow-up `investigate_root_cause` call — the number of follow-ups genuinely varies per product (one area for PRODUCT-A, two for PRODUCT-B) rather than being scripted.
+- Describing an open-ended customer-reported product defect (no batch IDs) triggers a DYNAMIC path instead: `scope_customer_defect_report` runs first, and only the root-cause areas it actually flags get a follow-up `investigate_root_cause` call. The number of follow-ups genuinely varies per product — one area for PRODUCT-A, two for PRODUCT-B — rather than being scripted.
 
 ---
 
@@ -28,7 +28,9 @@ uv run tasks/agentic-architecture/task-6-task-decomposition-strategies/main.py "
 uv run tasks/agentic-architecture/task-6-task-decomposition-strategies/main.py "A customer returned a batch of PRODUCT-A units with cracking near the left edge. Can you find out why?"
 uv run tasks/agentic-architecture/task-6-task-decomposition-strategies/main.py "We're getting reports of inconsistent wall thickness on PRODUCT-B. Please investigate."
 ```
-The first (default) scenario names three batch IDs, so the agent runs the fixed pipeline — one `inspect_batch` call per batch, then one `run_cross_batch_defect_trend` pass that surfaces the evening-shift defect concentration. The second describes an open-ended PRODUCT-A defect with no batch IDs, so the agent scopes first and finds only one flagged area (`materials`), producing exactly one `investigate_root_cause` follow-up. The third does the same for PRODUCT-B, whose scope flags two areas (`calibration`, `process_step`), producing two follow-up calls — proving the dynamic path's fan-out is decided at runtime by what the scope discovers, not fixed in the prompt.
+- **First (default) scenario:** names three batch IDs, so the agent runs the fixed pipeline — one `inspect_batch` call per batch, then one `run_cross_batch_defect_trend` pass that surfaces the evening-shift defect concentration.
+- **Second scenario:** describes an open-ended PRODUCT-A defect with no batch IDs. The agent scopes first, finds only one flagged area (`materials`), and produces exactly one `investigate_root_cause` follow-up.
+- **Third scenario:** does the same for PRODUCT-B, whose scope flags two areas (`calibration`, `process_step`), producing two follow-up calls. This proves the dynamic path's fan-out is decided at runtime by what the scope discovers, not fixed in the prompt.
 
 ---
 
@@ -70,7 +72,7 @@ The first (default) scenario names three batch IDs, so the agent runs the fixed 
       shift_averages = {shift: sum(counts) / len(counts) for shift, counts in by_shift.items()}
   ```
 
-  `_inspect_batch` is the per-item local analysis pass (one call per batch, no cross-batch awareness); `_run_cross_batch_defect_trend` is the separate integration pass that only runs once every batch has been inspected, mirroring the per-file-then-cross-file review pattern.
+  `_inspect_batch` is the per-item local analysis pass — one call per batch, no cross-batch awareness. `_run_cross_batch_defect_trend` is the separate integration pass that only runs once every batch has been inspected. Together they mirror the per-file-then-cross-file review pattern.
 
 - **The value of adaptive investigation plans that generate subtasks based on what is discovered at each step** — `data.py`
 
@@ -92,7 +94,7 @@ The first (default) scenario names three batch IDs, so the agent runs the fixed 
   }
   ```
 
-  PRODUCT-A's scope flags a single area while PRODUCT-B's flags two — the set of follow-up `investigate_root_cause` subtasks is generated from what the scope step actually discovers per product, not a fixed count baked into the prompt.
+  PRODUCT-A's scope flags a single area, while PRODUCT-B's flags two. The set of follow-up `investigate_root_cause` subtasks is generated from what the scope step actually discovers per product — not a fixed count baked into the prompt.
 
 - **Selecting task decomposition patterns appropriate to the workflow: prompt chaining for predictable multi-aspect reviews, dynamic decomposition for open-ended investigation tasks** — `main.py`
 
@@ -116,7 +118,7 @@ The first (default) scenario names three batch IDs, so the agent runs the fixed 
   ),
   ```
 
-  `run_cross_batch_defect_trend` deliberately has no memory of prior calls and requires every finding to be passed explicitly — the per-batch inspection and the cross-batch trend analysis stay two distinct passes instead of one call trying to do both at once, the same reasoning behind per-file-then-cross-file code review.
+  `run_cross_batch_defect_trend` deliberately has no memory of prior calls, and requires every finding to be passed explicitly. The per-batch inspection and the cross-batch trend analysis stay two distinct passes, instead of one call trying to do both at once — the same reasoning behind per-file-then-cross-file code review.
 
 - **Decomposing open-ended tasks (e.g., "add comprehensive tests to a legacy codebase") by first mapping structure, identifying high-impact areas, then creating a prioritized plan that adapts as dependencies are discovered** — `tools.py`
 
@@ -134,4 +136,6 @@ The first (default) scenario names three batch IDs, so the agent runs the fixed 
       }
   ```
 
-  `scope_customer_defect_report` maps the full space of possible root-cause areas first (`areas_checked`), then narrows to only the ones worth a deeper look (`areas_flagged`) — the same map-then-prioritize shape as scoping a legacy codebase before deciding where testing effort actually pays off, with `investigate_root_cause` refusing to run on an area the scope didn't flag (see `tools.py`'s validation branch) so the plan only ever adapts to what was genuinely discovered.
+  `scope_customer_defect_report` maps the full space of possible root-cause areas first (`areas_checked`), then narrows to only the ones worth a deeper look (`areas_flagged`). This is the same map-then-prioritize shape as scoping a legacy codebase before deciding where testing effort actually pays off.
+
+  `investigate_root_cause` refuses to run on an area the scope didn't flag (see `tools.py`'s validation branch), so the plan only ever adapts to what was genuinely discovered.

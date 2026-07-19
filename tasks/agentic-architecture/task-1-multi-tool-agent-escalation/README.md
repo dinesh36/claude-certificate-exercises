@@ -88,7 +88,7 @@ uv run tasks/agentic-architecture/task-1-multi-tool-agent-escalation/main.py "Ca
   ),
   ```
 
-  The four tool descriptions (especially `get_order_details` vs. `search_orders`, deliberately similar to test selection accuracy) plus `main.py`'s system prompt let Claude choose which tool to call and when, rather than the harness driving a fixed sequence.
+  The four tool descriptions let Claude choose which tool to call and when, instead of the harness driving a fixed sequence. `get_order_details` and `search_orders` are deliberately similar, to test selection accuracy.
 
 - **Structured tool error responses (`errorCategory`/`isRetryable`/description)** — `common/errors.py`, `tools.py`
 
@@ -130,4 +130,4 @@ uv run tasks/agentic-architecture/task-1-multi-tool-agent-escalation/main.py "Ca
       append_log(record, _log_file())
   ```
 
-  Every user/assistant/tool_result turn is appended as it happens to a per-run formatted (pretty-printed) JSON file under `logs/` at the repo root, so the complete context history survives beyond the process's own `messages` list; the resolved path is returned on `AgentResult.log_file` and printed by `main.py`.
+  Every user/assistant/tool_result turn is appended as it happens to a per-run formatted (pretty-printed) JSON file under `logs/` at the repo root. The complete context history survives beyond the process's own `messages` list this way. The resolved path is returned on `AgentResult.log_file` and printed by `main.py`.

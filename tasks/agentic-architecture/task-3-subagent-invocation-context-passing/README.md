@@ -30,7 +30,12 @@ Optionally pass a custom request as the first argument:
 uv run tasks/agentic-architecture/task-3-subagent-invocation-context-passing/main.py "I'm planning a trip to Lisbon. Pull together what these blog posts say about it, and give me both a budget and a luxury itinerary option."
 uv run tasks/agentic-architecture/task-3-subagent-invocation-context-passing/main.py "Just tell me what these blog posts say about Lisbon overall - I don't need a specific itinerary yet."
 ```
-The first (default) scenario makes the coordinator emit all four `dispatch_blog_review_subagent` calls in one turn, pass the complete findings to `dispatch_synthesis_subagent`, then fork the resulting summary into two parallel `dispatch_itinerary_subagent` calls (`budget` and `luxury`) in a single later turn. The second, narrower scenario makes it stop after synthesis and never call `dispatch_itinerary_subagent` at all — the coordinator adapts to what was actually asked rather than always running the full fixed pipeline (verified live: 0 `dispatch_itinerary_subagent` calls in that run).
+The first (default) scenario:
+- Emits all four `dispatch_blog_review_subagent` calls in one turn.
+- Passes the complete findings to `dispatch_synthesis_subagent`.
+- Forks the resulting summary into two parallel `dispatch_itinerary_subagent` calls (`budget` and `luxury`) in a single later turn.
+
+The second, narrower scenario stops after synthesis and never calls `dispatch_itinerary_subagent` at all. The coordinator adapts to what was actually asked, instead of always running the full fixed pipeline — verified live: 0 `dispatch_itinerary_subagent` calls in that run.
 
 ---
 
@@ -46,7 +51,7 @@ The first (default) scenario makes the coordinator emit all four `dispatch_blog_
   )
   ```
 
-  In Claude Code, a coordinator's `allowedTools` must list `"Task"` before it can spawn subagents; the direct analog here (raw Anthropic SDK, no Claude Code runtime) is the `tools=TOOLS` argument on the `run_tool_loop` call — the three `dispatch_*_subagent` entries in `tools.py`'s `TOOLS` list are the only surface through which the coordinator can reach a subagent at all.
+  In Claude Code, a coordinator's `allowedTools` must list `"Task"` before it can spawn subagents. This task uses the raw Anthropic SDK, not the Claude Code runtime, so the direct analog is the `tools=TOOLS` argument on the `run_tool_loop` call. The three `dispatch_*_subagent` entries in `tools.py`'s `TOOLS` list are the only surface through which the coordinator can reach a subagent at all.
 
 - **Subagent context must be explicit — no automatic inheritance or shared memory between invocations** — `common/subagent.py`, `tools.py`
 
@@ -58,7 +63,7 @@ The first (default) scenario makes the coordinator emit all four `dispatch_blog_
       )
   ```
 
-  `run_subagent` opens a fresh `messages=[...]` list on every call, with no reference to the coordinator's own history; `tools.py`'s three `_dispatch_*_subagent` functions show the only context each subagent ever receives is what this module explicitly builds into `user_message`.
+  `run_subagent` opens a fresh `messages=[...]` list on every call, with no reference to the coordinator's own history. `tools.py`'s three `_dispatch_*_subagent` functions show the only context each subagent ever receives is what this module explicitly builds into `user_message`.
 
 - **`AgentDefinition` configuration (descriptions, system prompts, tool restrictions) per subagent type** — `tools.py`
 
@@ -86,7 +91,7 @@ The first (default) scenario makes the coordinator emit all four `dispatch_blog_
       return {"style": style, "itinerary": itinerary}
   ```
 
-  `_dispatch_itinerary_subagent` is invoked twice with the identical `baseline_summary` text but a different `style` — the raw-API analog of Claude Code's `fork_session`, which branches a session at a shared analysis point to explore divergent approaches; verified live in the default scenario, where both the budget and luxury itineraries trace back to the same destination-summary text.
+  `_dispatch_itinerary_subagent` is invoked twice with the identical `baseline_summary` text but a different `style`. This is the raw-API analog of Claude Code's `fork_session`, which branches a session at a shared analysis point to explore divergent approaches. Verified live in the default scenario: both the budget and luxury itineraries trace back to the same destination-summary text.
 
 - **Passing complete findings from prior agents directly into a subagent's prompt** — `tools.py`
 
@@ -99,7 +104,7 @@ The first (default) scenario makes the coordinator emit all four `dispatch_blog_
   )
   ```
 
-  `_dispatch_synthesis_subagent` joins every finding's full `claim`, `evidence_excerpt`, and `source` (not just an ID or a summary) into `user_message`; the `dispatch_synthesis_subagent` tool schema requires the complete finding objects as `findings`, not references to prior `tool_use_id`s.
+  `_dispatch_synthesis_subagent` joins every finding's full `claim`, `evidence_excerpt`, and `source` into `user_message` — not just an ID or a summary. The `dispatch_synthesis_subagent` tool schema requires the complete finding objects as `findings`, not references to prior `tool_use_id`s.
 
 - **Structured data formats separating content from metadata (source, blog name, author) to preserve attribution** — `tools.py`, `data.py`
 
@@ -112,7 +117,7 @@ The first (default) scenario makes the coordinator emit all four `dispatch_blog_
   }
   ```
 
-  Every finding returned by `_dispatch_blog_review_subagent` keeps `claim`/`evidence_excerpt` (content) in separate keys from `source: {blog_name, author}` (metadata), sourced from `data.py`'s per-post metadata; the destination summary then cites each fact as `(BlogName, Author)` rather than losing attribution once content is merged — verified live in both example runs, where every claim in the summary carries its source in parentheses.
+  Every finding returned by `_dispatch_blog_review_subagent` keeps `claim`/`evidence_excerpt` (content) in separate keys from `source: {blog_name, author}` (metadata), sourced from `data.py`'s per-post metadata. The destination summary then cites each fact as `(BlogName, Author)`, so attribution isn't lost once content is merged. Verified live in both example runs: every claim in the summary carries its source in parentheses.
 
 - **Spawning parallel subagents via multiple Task calls in a single coordinator response, not across separate turns** — `tools.py`, `common/agent_loop.py`
 
@@ -122,7 +127,9 @@ The first (default) scenario makes the coordinator emit all four `dispatch_blog_
   "time across separate turns."
   ```
 
-  This tool description instructs emitting all needed calls "together in this same turn"; `common/agent_loop.py`'s tool-dispatch step is what makes this possible — it iterates every `tool_use` block in one `response.content` and dispatches all of them concurrently before the next API call. Verified live: the default scenario's first tool-bearing turn contains all four `dispatch_blog_review_subagent` calls (completing out of declaration order, e.g. `POST-4, POST-1, POST-3, POST-2`, since they ran concurrently), and a later single turn contains both `dispatch_itinerary_subagent` calls.
+  This tool description instructs emitting all needed calls "together in this same turn." `common/agent_loop.py`'s tool-dispatch step is what makes this possible: it iterates every `tool_use` block in one `response.content` and dispatches all of them concurrently before the next API call.
+
+  Verified live: the default scenario's first tool-bearing turn contains all four `dispatch_blog_review_subagent` calls, completing out of declaration order (e.g. `POST-4, POST-1, POST-3, POST-2`) since they ran concurrently. A later single turn contains both `dispatch_itinerary_subagent` calls.
 
 - **Coordinator prompts specifying goals/quality criteria rather than step-by-step procedure, enabling adaptability** — `main.py`
 
@@ -132,4 +139,4 @@ The first (default) scenario makes the coordinator emit all four `dispatch_blog_
   "Finish with a response addressing exactly what the user asked, no more and no less."
   ```
 
-  The system prompt states outcomes rather than a fixed step count; verified live by the narrower "How to run" scenario, where the coordinator reviews posts and synthesizes but never calls `dispatch_itinerary_subagent`, since the user didn't ask for a specific itinerary.
+  The system prompt states outcomes rather than a fixed step count. Verified live by the narrower "How to run" scenario: the coordinator reviews posts and synthesizes, but never calls `dispatch_itinerary_subagent`, since the user didn't ask for a specific itinerary.

@@ -14,8 +14,8 @@
 
 # Subject
 A dev-workflow MCP server that fetches user stories and bug tickets from two separate mock trackers and turns a fetched story into a development plan.
-- It replaces an originally ambiguous `get_item(id)` tool — which could return either a story or a bug ticket depending on what happened to live at that ID, and regularly misrouted "the export bug" to the story tracker and vice versa — with two domain-specific tools: `fetch_user_story` and `fetch_bug_ticket`.
-- It also replaces an originally generic `create_plan(id)` tool — which vaguely "did something plan-related" for any ID — with three purpose-specific tools: `identify_story_risks`, `estimate_story_effort`, and `generate_dev_plan`, each with a defined input/output contract and an explicit cross-reference to its siblings.
+- It replaces an originally ambiguous `get_item(id)` tool with two domain-specific tools: `fetch_user_story` and `fetch_bug_ticket`. The old tool could return either a story or a bug ticket depending on what happened to live at that ID, and regularly misrouted "the export bug" to the story tracker and vice versa.
+- It also replaces an originally generic `create_plan(id)` tool with three purpose-specific tools: `identify_story_risks`, `estimate_story_effort`, and `generate_dev_plan`. The old tool vaguely "did something plan-related" for any ID. Each new tool has a defined input/output contract and an explicit cross-reference to its siblings.
 
 ---
 
@@ -27,7 +27,9 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
    cd tasks/tool-design-mcp/task-1-tool-interface-clarity-boundaries
    claude mcp add --transport stdio dev-workflow-assistant -- uv run --directory "$(pwd)" server.py
    ```
-   This uses the default **local** scope, stored in `~/.claude.json` keyed to this exact directory — it won't appear in any other project, and won't touch this repo's own root `.mcp.json`. The `--directory "$(pwd)"` bakes the absolute task-folder path into the registered command itself — without it, the stored command is the bare relative `uv run server.py`, which only resolves when Claude Code happens to spawn it with this folder as the process's cwd, so `claude mcp list` reports `✘ Failed to connect` from anywhere else even though the registration itself is fine.
+   This uses the default **local** scope, stored in `~/.claude.json` keyed to this exact directory. It won't appear in any other project, and won't touch this repo's own root `.mcp.json`.
+
+   The `--directory "$(pwd)"` bakes the absolute task-folder path into the registered command itself. Without it, the stored command is the bare relative `uv run server.py`, which only resolves when Claude Code happens to spawn it with this folder as the process's cwd. `claude mcp list` would then report `✘ Failed to connect` from anywhere else — even though the registration itself is fine.
 2. **Verify it connected:**
    ```bash
    claude mcp list
@@ -37,11 +39,11 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
    ```
    Can you pull up the details for the Safari export bug, ticket BUG-501?
    ```
-   Should call `fetch_bug_ticket`, not `fetch_user_story` — the "bug" framing and `BUG-` ID are the disambiguating signal. Verified live: returned the ticket's repro steps and severity.
+   Should call `fetch_bug_ticket`, not `fetch_user_story`. The "bug" framing and `BUG-` ID are the disambiguating signal. Verified live: returned the ticket's repro steps and severity.
    ```
    What's the CSV export story, STORY-101, about?
    ```
-   Should call `fetch_user_story`, not `fetch_bug_ticket` — the "story" framing and `STORY-` ID disambiguate the other way. Verified live: returned the story's description and acceptance criteria.
+   Should call `fetch_user_story`, not `fetch_bug_ticket`. The "story" framing and `STORY-` ID disambiguate the other way. Verified live: returned the story's description and acceptance criteria.
    ```
    How big of an effort is STORY-102, roughly?
    ```
@@ -75,7 +77,7 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
       """
   ```
 
-  FastMCP uses each tool's docstring as its description — verified live: a "the Safari export bug" prompt correctly triggered `fetch_bug_ticket` and a "the CSV export story" prompt correctly triggered `fetch_user_story`, entirely on the strength of this wording.
+  FastMCP uses each tool's docstring as its description. Verified live: a "the Safari export bug" prompt correctly triggered `fetch_bug_ticket`, and a "the CSV export story" prompt correctly triggered `fetch_user_story` — entirely on the strength of this wording.
 
 - **The importance of including input formats, example queries, edge cases, and boundary explanations in tool descriptions** — `server.py`
 
@@ -103,18 +105,24 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
       """
   ```
 
-  Pasted in full: the docstring states the input format (`"STORY-101"`), an example query ("the CSV export story"), the output shape, and the edge case/boundary (what happens on an unknown or wrong-kind ID) — all four elements the bullet calls for.
+  Pasted in full, the docstring states all four elements the bullet calls for:
+  - The input format (`"STORY-101"`)
+  - An example query ("the CSV export story")
+  - The output shape
+  - The edge case/boundary (what happens on an unknown or wrong-kind ID)
 
 - **How ambiguous or overlapping tool descriptions cause misrouting (e.g., analyze_content vs analyze_document with near-identical descriptions)** — `server.py` (before/after, documented here)
 
   The server's own module docstring records the "before" this replaced:
   > "Replaces an originally ambiguous get_item(id) tool (which could return either a story or a bug ticket depending on what happened to be at that ID, and regularly misrouted 'the export bug' to the story tracker and vice versa)..."
 
-  A single `get_item(id)` with a generic description gives the model no signal to distinguish "the export bug" from "the export story" — both are plausible for the same vague tool. Splitting it into `fetch_user_story`/`fetch_bug_ticket`, each naming its own domain explicitly, is the fix — verified live against both framings.
+  A single `get_item(id)` with a generic description gives the model no signal to distinguish "the export bug" from "the export story" — both are plausible for the same vague tool. Splitting it into `fetch_user_story`/`fetch_bug_ticket`, each naming its own domain explicitly, is the fix. Verified live against both framings.
 
 - **The impact of system prompt wording on tool selection: keyword-sensitive instructions can create unintended tool associations** — analysis (no code change; Claude Code's own system prompt isn't something this task's server controls)
 
-  A system-prompt instruction like *"Always use fetch_user_story whenever the user mentions an ID"* would override this server's careful per-tool boundaries — it would push every `BUG-*` lookup through `fetch_user_story` regardless of how well that tool's own docstring says not to. The fix is never to key tool routing off a single keyword ("ID") in the system prompt; let the tool descriptions themselves carry the disambiguating detail (the ID prefix, the framing words), and keep system-prompt instructions generic ("call the fetch tool whose description matches the request") rather than prescriptive about which tool to prefer.
+  A system-prompt instruction like *"Always use fetch_user_story whenever the user mentions an ID"* would override this server's careful per-tool boundaries. It would push every `BUG-*` lookup through `fetch_user_story`, no matter how clearly that tool's own docstring says not to.
+
+  The fix: never key tool routing off a single keyword (like "ID") in the system prompt. Let the tool descriptions themselves carry the disambiguating detail — the ID prefix, the framing words. Keep system-prompt instructions generic ("call the fetch tool whose description matches the request"), not prescriptive about which tool to prefer.
 
 - **Writing tool descriptions that clearly differentiate each tool's purpose, expected inputs, outputs, and when to use it versus similar alternatives** — `server.py`
 
@@ -127,7 +135,7 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
   """
   ```
 
-  `estimate_story_effort`'s docstring explicitly names `generate_dev_plan` as the sibling to use instead for a different kind of question — verified live: a pure sizing prompt triggered only `estimate_story_effort`, not `generate_dev_plan`, even though both tools take the same `story_id` argument.
+  `estimate_story_effort`'s docstring explicitly names `generate_dev_plan` as the sibling to use instead for a different kind of question. Verified live: a pure sizing prompt triggered only `estimate_story_effort`, not `generate_dev_plan` — even though both tools take the same `story_id` argument.
 
 - **Renaming tools and updating descriptions to eliminate functional overlap (e.g., renaming analyze_content to extract_web_results with a web-specific description)** — `server.py`
 
@@ -142,7 +150,7 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
       """
   ```
 
-  `fetch_bug_ticket` (renamed from the original generic `get_item`) is scoped to the bug domain by name and description, exactly mirroring the wiki's own `analyze_content` → `extract_web_results` rename pattern.
+  `fetch_bug_ticket` is renamed from the original generic `get_item`, and scoped to the bug domain by name and description — exactly mirroring the wiki's own `analyze_content` → `extract_web_results` rename pattern.
 
 - **Splitting generic tools into purpose-specific tools with defined input/output contracts (e.g., splitting a generic analyze_document into extract_data_points, summarize_content, and verify_claim_against_source)** — `server.py`
 
@@ -157,8 +165,13 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
   def generate_dev_plan(story_id: str) -> dict: ...
   ```
 
-  The original generic `create_plan(id)` is split into three tools with distinct, defined contracts: `identify_story_risks` returns a `risks` list, `estimate_story_effort` returns a `size`/`rationale` pair, and `generate_dev_plan` returns an ordered `tasks` list — mirroring the wiki's `extract_data_points`/`summarize_content`/`verify_claim_against_source` split.
+  The original generic `create_plan(id)` is split into three tools with distinct, defined contracts:
+  - `identify_story_risks` returns a `risks` list.
+  - `estimate_story_effort` returns a `size`/`rationale` pair.
+  - `generate_dev_plan` returns an ordered `tasks` list.
+
+  This mirrors the wiki's `extract_data_points`/`summarize_content`/`verify_claim_against_source` split.
 
 - **Reviewing system prompts for keyword-sensitive instructions that might override well-written tool descriptions** — analysis (see the Knowledge-of entry above)
 
-  Reviewing a system prompt for this task means checking it never singles out one tool by a keyword the request merely happens to contain (like "ID" or "ticket") — the live test above (a pure sizing prompt correctly avoiding `generate_dev_plan`) only holds because no such override was present; a prescriptive system-prompt rule could have broken it regardless of how clear the tool docstrings were.
+  Reviewing a system prompt for this task means checking it never singles out one tool by a keyword the request merely happens to contain — like "ID" or "ticket." The live test above (a pure sizing prompt correctly avoiding `generate_dev_plan`) only holds because no such override was present. A prescriptive system-prompt rule could have broken it, no matter how clear the tool docstrings were.

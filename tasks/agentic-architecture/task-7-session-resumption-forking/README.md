@@ -13,10 +13,15 @@
 ---
 
 # Subject
-A legacy-codebase migration coordinator that investigates a monolith's modules (`billing`, `auth`, `reporting`) as a named baseline session, then demonstrates every way that session can continue: resumed later with a targeted note about one module that changed, forked into independent branches comparing divergent migration strategies from the same shared baseline, or abandoned for a genuinely empty conversation that recovers context from Anthropic's memory tool instead of replaying stale tool results.
+A legacy-codebase migration coordinator that investigates a monolith's modules (`billing`, `auth`, `reporting`) as a named baseline session. It then demonstrates every way that session can continue:
+- Resumed later, with a targeted note about one module that changed.
+- Forked into independent branches comparing divergent migration strategies from the same shared baseline.
+- Abandoned for a genuinely empty conversation that recovers context from Anthropic's memory tool, instead of replaying stale tool results.
+
+How the pieces fit together:
 - `new`/`resume`/`fork` are built on `common/session_store.py`, a small reusable primitive (`save_session`/`load_session`/`fork_session`) that persists and replays the actual prior conversation — the real `--resume`/`fork_session` mechanic.
-- `restart` is built on Anthropic's built-in memory tool (`memory_20250818`, see `memory_tool.py`) instead — a genuinely different mechanism with no concept of a conversation transcript at all, so it can't resume or fork anything. What it's good for: the coordinator writes a curated findings file to `/memories` during the baseline and keeps it current on `resume`; `restart` starts a brand-new, empty conversation and recovers context by reading that file back, rather than trusting a raw tool result that may have gone stale.
-- Resuming after `billing`'s coupling score changed produces a **targeted** re-analysis of just that module (and updates the memory file to match); forking the baseline into a strangler-fig branch and a big-bang branch produces genuinely different effort/risk recommendations from identical starting context.
+- `restart` is built on Anthropic's built-in memory tool (`memory_20250818`, see `memory_tool.py`) instead. This is a genuinely different mechanism, with no concept of a conversation transcript at all, so it can't resume or fork anything. The coordinator writes a curated findings file to `/memories` during the baseline and keeps it current on `resume`. `restart` starts a brand-new, empty conversation and recovers context by reading that file back, rather than trusting a raw tool result that may have gone stale.
+- Resuming after `billing`'s coupling score changed produces a **targeted** re-analysis of just that module, and updates the memory file to match. Forking the baseline into a strangler-fig branch and a big-bang branch produces genuinely different effort/risk recommendations from identical starting context.
 
 ---
 
@@ -25,20 +30,22 @@ See the repository root [README](../../../README.md) for one-time setup (uv proj
 ```bash
 uv run tasks/agentic-architecture/task-7-session-resumption-forking/main.py new
 ```
-This starts and saves a fresh baseline session (`legacy-migration-baseline`) investigating all three modules — and clears the memory directory first, so a second `new` run starts with a genuinely clean slate rather than the coordinator's `create` call failing with "File already exists" against a leftover file from a previous run. Then try each continuation mode against that saved session:
+This starts and saves a fresh baseline session (`legacy-migration-baseline`) investigating all three modules. It also clears the memory directory first, so a second `new` run starts with a genuinely clean slate — otherwise the coordinator's `create` call would fail with "File already exists" against a leftover file from a previous run. Then try each continuation mode against that saved session:
 ```bash
 uv run tasks/agentic-architecture/task-7-session-resumption-forking/main.py resume
 ```
-Resumes `legacy-migration-baseline` and tells it `billing` changed since the baseline — the agent calls `check_module_diff("billing")` and updates only billing's assessment, leaving `auth` and `reporting` untouched rather than re-running the whole investigation.
+Resumes `legacy-migration-baseline` and tells it `billing` changed since the baseline. The agent calls `check_module_diff("billing")` and updates only billing's assessment, leaving `auth` and `reporting` untouched, rather than re-running the whole investigation.
 ```bash
 uv run tasks/agentic-architecture/task-7-session-resumption-forking/main.py fork legacy-migration-baseline branch-strangler "Recommend a strangler-fig migration plan for billing, with effort/timeline/risk."
 uv run tasks/agentic-architecture/task-7-session-resumption-forking/main.py fork legacy-migration-baseline branch-bigbang "Recommend a big-bang rewrite plan for billing, with effort/timeline/risk."
 ```
-Both forks start from the identical saved baseline but diverge — one gets a ~10-week low-risk incremental plan, the other a ~4-week high-risk rewrite plan — proving the fork is a real independent branch, not a shared mutable session.
+Both forks start from the identical saved baseline, but diverge: one gets a ~10-week low-risk incremental plan, the other a ~4-week high-risk rewrite plan. This proves the fork is a real independent branch, not a shared mutable session.
 ```bash
 uv run tasks/agentic-architecture/task-7-session-resumption-forking/main.py restart
 ```
-Starts a genuinely empty conversation — no saved session, no seeded history at all — with only the memory tool attached. The API auto-injects an instruction to check `/memories` before doing anything else, so the coordinator reads back the findings file `new`/`resume` wrote and updated, and recommends a migration strategy for billing from that *current* (coupling now 3, not the original 8) picture — without replaying a single raw tool result from the baseline session.
+Starts a genuinely empty conversation — no saved session, no seeded history at all — with only the memory tool attached. The API auto-injects an instruction to check `/memories` before doing anything else.
+
+So the coordinator reads back the findings file `new`/`resume` wrote and updated, and recommends a migration strategy for billing from that *current* picture (coupling now 3, not the original 8) — without replaying a single raw tool result from the baseline session.
 
 ---
 
@@ -56,7 +63,7 @@ Starts a genuinely empty conversation — no saved session, no seeded history at
           raise SystemExit(f"No saved session '{session_id}' to resume — run 'new' first.")
   ```
 
-  `resume` mode takes a named session id, loads its saved history via `load_session`, and continues the same conversation — the equivalent of `--resume <name>` for this task's own session mechanism.
+  `resume` mode takes a named session id, loads its saved history via `load_session`, and continues the same conversation. This is the equivalent of `--resume <name>` for this task's own session mechanism.
 
 - **fork_session for creating independent branches from a shared analysis baseline to explore divergent approaches** — `common/session_store.py`
 
@@ -69,7 +76,7 @@ Starts a genuinely empty conversation — no saved session, no seeded history at
       return history
   ```
 
-  `fork_session` copies the source session's history into a brand-new session id, persisted immediately — the original baseline stays untouched while the new branch continues independently.
+  `fork_session` copies the source session's history into a brand-new session id, persisted immediately. The original baseline stays untouched while the new branch continues independently.
 
 - **The importance of informing the agent about changes to previously analyzed files when resuming sessions after code modifications** — `main.py`
 
@@ -84,7 +91,7 @@ Starts a genuinely empty conversation — no saved session, no seeded history at
   )
   ```
 
-  The resume prompt explicitly names which module changed rather than silently resuming and hoping the model notices — verified live: the agent called `check_module_diff("billing")` and revised only billing's risk tier, explicitly noting `auth` and `reporting` were unaffected.
+  The resume prompt explicitly names which module changed, rather than silently resuming and hoping the model notices. Verified live: the agent called `check_module_diff("billing")` and revised only billing's risk tier, explicitly noting `auth` and `reporting` were unaffected.
 
 - **Why starting a new session with a structured summary is more reliable than resuming with stale tool results** — `main.py`, `memory_tool.py`
 
@@ -96,7 +103,11 @@ Starts a genuinely empty conversation — no saved session, no seeded history at
   messages = _run(message, history=None)
   ```
 
-  `restart` mode passes `history=None` — a genuinely empty conversation, not a seeded fake one — and relies entirely on the memory tool to recover context. Verified live: after `resume` updated `/memories/legacy-migration-baseline.md` to say billing's coupling dropped from 8 to 3, a `restart` run with zero history correctly recommended a strategy based on the *current* (coupling 3) picture — proving it isn't trusting any stale `analyze_module` tool result baked into a replayed transcript, because there is no replayed transcript at all. Note `new` mode calls `reset_memory()` first (see `memory_tool.py`) — only `new` clears the memory directory; `restart` never does, since recovering whatever is already there is its entire purpose.
+  `restart` mode passes `history=None` — a genuinely empty conversation, not a seeded fake one — and relies entirely on the memory tool to recover context.
+
+  Verified live: after `resume` updated `/memories/legacy-migration-baseline.md` to say billing's coupling dropped from 8 to 3, a `restart` run with zero history correctly recommended a strategy based on the *current* picture (coupling 3). There is no replayed transcript at all, so it can't be trusting a stale `analyze_module` tool result baked into one.
+
+  Note: `new` mode calls `reset_memory()` first (see `memory_tool.py`). Only `new` clears the memory directory — `restart` never does, since recovering whatever is already there is its entire purpose.
 
 - **Using --resume with session names to continue named investigation sessions across work sessions** — `main.py`, `common/session_store.py`
 
@@ -107,7 +118,7 @@ Starts a genuinely empty conversation — no saved session, no seeded history at
   save_session(session_id, messages)
   ```
 
-  Every `resume` call re-saves the session under the same name after continuing it, so a later `resume` call picks up exactly where this one left off — a real multi-call, named investigation rather than a single-shot conversation.
+  Every `resume` call re-saves the session under the same name after continuing it. A later `resume` call picks up exactly where this one left off — a real multi-call, named investigation, not a single-shot conversation.
 
 - **Using fork_session to create parallel exploration branches (e.g., comparing two testing strategies or refactoring approaches from a shared codebase analysis)** — `main.py`, `tools.py`
 
@@ -125,7 +136,7 @@ Starts a genuinely empty conversation — no saved session, no seeded history at
   },
   ```
 
-  `branch-strangler` and `branch-bigbang` fork the identical baseline and each call `estimate_migration_effort` with a different `strategy` argument — verified live: the two branches returned genuinely different effort/risk profiles (~10 weeks/low risk vs. ~4 weeks/high risk) for the same module, from the same shared starting context.
+  `branch-strangler` and `branch-bigbang` fork the identical baseline, then each call `estimate_migration_effort` with a different `strategy` argument. Verified live: the two branches returned genuinely different effort/risk profiles (~10 weeks/low risk vs. ~4 weeks/high risk) for the same module, from the same shared starting context.
 
 - **Choosing between session resumption (when prior context is mostly valid) and starting fresh with injected summaries (when prior tool results are stale)** — `main.py`, `tools.py`
 
@@ -136,7 +147,13 @@ Starts a genuinely empty conversation — no saved session, no seeded history at
   },
   ```
 
-  `resume` and `restart` are genuinely different mechanisms living side by side in the same `TOOLS` list: `resume` (via `common/session_store.py`) is the right choice when most of the baseline still holds — it replays the actual prior messages, so it's cheap and preserves everything still valid. `restart` (via the memory tool) is the right choice when the raw history itself would mislead the model — it never sees the old messages at all, only whatever curated fact was explicitly written or updated. The task's "How to run" section walks through both so the tradeoff is directly comparable.
+  `resume` and `restart` are genuinely different mechanisms living side by side in the same `TOOLS` list.
+
+  `resume` (via `common/session_store.py`) is the right choice when most of the baseline still holds. It replays the actual prior messages, so it's cheap and preserves everything still valid.
+
+  `restart` (via the memory tool) is the right choice when the raw history itself would mislead the model. It never sees the old messages at all — only whatever curated fact was explicitly written or updated.
+
+  The task's "How to run" section walks through both, so the tradeoff is directly comparable.
 
 - **Informing a resumed session about specific file changes for targeted re-analysis rather than requiring full re-exploration** — `tools.py`, `main.py`
 
@@ -149,4 +166,4 @@ Starts a genuinely empty conversation — no saved session, no seeded history at
   ),
   ```
 
-  `check_module_diff`'s own description — reinforced by the system prompt's "do not re-run list_modules or re-analyze modules that were not mentioned as changed" — is what kept the resumed session's re-analysis scoped to `billing` alone, verified live in the resume run above.
+  `check_module_diff`'s own description, reinforced by the system prompt's "do not re-run list_modules or re-analyze modules that were not mentioned as changed," is what kept the resumed session's re-analysis scoped to `billing` alone. Verified live in the resume run above.
