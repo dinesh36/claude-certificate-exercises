@@ -34,6 +34,7 @@ One row per completed task, added only once it's actually built and verified —
 | [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp) | [Task-3 - Tool distribution and choice](tasks/tool-design-mcp/task-3-tool-distribution-and-choice/README.md) | An insurance-claims-desk MCP server orchestrating role-scoped subagents |
 | [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp) | [Task-4 - MCP server integration](tasks/tool-design-mcp/task-4-mcp-server-integration/README.md) | An internal engineering docs/runbooks MCP server using project-scoped config |
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-1 - CLAUDE.md hierarchy scoping](tasks/claude-code-workflows/task-1-claude-md-hierarchy-scoping/README.md) | A fintech billing monorepo with per-package CLAUDE.md conventions |
+| [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-2 - Slash commands and skills](tasks/claude-code-workflows/task-2-slash-commands-and-skills/README.md) | A docs publishing monorepo with a project-scoped command and three configured skills |
 
 ## Repository Layout
 
