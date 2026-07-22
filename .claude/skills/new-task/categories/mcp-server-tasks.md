@@ -84,11 +84,14 @@ This task is a real MCP server, not a script you `uv run` directly — Claude Co
    claude mcp add --transport stdio &lt;server-name&gt; -- uv run --directory "$(pwd)" server.py
    ```
    This uses the default **local** scope, stored in `~/.claude.json` keyed to this exact directory — it won't appear in any other project, and won't touch this repo's own root `.mcp.json`. Always include `--directory "$(pwd)"` (evaluated by the shell at registration time, so it bakes in the absolute task-folder path) rather than the bare `uv run server.py` — without it, the stored command is relative and only resolves when Claude Code happens to spawn it with this folder as the process's cwd; from anywhere else `claude mcp list` reports `✘ Failed to connect` even though the registration itself is fine.
-2. **Verify it connected:**
+2. **Check it's registered:**
    ```bash
    claude mcp list
    ```
-   `&lt;server-name&gt;` should show as connected.
+   Run this from the exact folder the registration is scoped to. `&lt;server-name&gt;` should at least appear.
+   - **Local scope** (the default, most tasks): it should also show `✔ Connected`. That status is reliable here.
+   - **Project scope** (`.mcp.json`, e.g. one needing a shared team credential): don't trust the status column. It can keep showing `⏸ Pending approval` even after the server's tools are already working fine in a live session.
+   - Either way, the real proof is step 3: an actual prompt that calls a real tool.
 3. **Start a Claude Code session from this same directory** and try these prompts — each is designed to exercise one tool-selection decision the task statement is about:
    ```
    &lt;prompt 1 — should route to one specific tool&gt;
@@ -126,7 +129,10 @@ Claude Code Configuration & Workflow Tasks' "no way to run a script" caveat does
 
 1. `uv sync` (or equivalent) so `mcp[cli]` is installed.
 2. `cd` into the task folder and run the exact `claude mcp add` command from the README.
-3. `claude mcp list` and confirm the server shows connected. `claude mcp get <server-name>` if you need to debug the exact command Claude Code is invoking.
+3. `claude mcp list`, run from the exact folder its registration is scoped to, and confirm the server at least appears.
+   - For local scope, also confirm it shows `✔ Connected` — that status is reliable there.
+   - For project scope, don't wait for `Connected`. It can stay on `⏸ Pending approval` even once the server's tools genuinely work — treat step 4 (a real prompt) as the actual verification instead.
+   - `claude mcp get <server-name>` if you need to debug the exact command Claude Code is invoking.
 4. Drive it non-interactively for each documented prompt, e.g.:
    ```bash
    claude -p "<prompt>" --allowedTools "mcp__<server-name>__<tool-name>"

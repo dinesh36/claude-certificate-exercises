@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "engineering-docs": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "server.py"
+      ],
+      "env": {
+        "DOCS_API_KEY": "${DOCS_API_KEY}"
+      }
+    }
+  }
+}
