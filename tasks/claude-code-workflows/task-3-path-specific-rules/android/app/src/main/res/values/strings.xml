@@ -1,0 +1,5 @@
+<resources>
+    <string name="onboarding_welcome_title">Welcome!</string>
+    <string name="onboarding_welcome_subtitle">Let\'s get started.</string>
+    <string name="darkModeLabel">Dark Mode</string>
+</resources>

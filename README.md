@@ -19,6 +19,7 @@ According to this [exam guide](./wiki/exam-guide.pdf) claude suggested few tasks
 | [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp) | [Task-4 - MCP server integration](tasks/tool-design-mcp/task-4-mcp-server-integration/README.md) | An internal engineering docs/runbooks MCP server using project-scoped config |
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-1 - CLAUDE.md hierarchy scoping](tasks/claude-code-workflows/task-1-claude-md-hierarchy-scoping/README.md) | A fintech billing monorepo with per-package CLAUDE.md conventions |
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-2 - Slash commands and skills](tasks/claude-code-workflows/task-2-slash-commands-and-skills/README.md) | A docs publishing monorepo with a project-scoped command and three configured skills |
+| [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-3 - Path specific rules](tasks/claude-code-workflows/task-3-path-specific-rules/README.md) | A cross-platform mobile monorepo with a glob-scoped localization convention rule |
 
 # Setup
 
