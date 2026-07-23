@@ -5,7 +5,9 @@ paths:
 
 # MCP Server Tasks — attaching and logging conventions
 
-Applies to every task under `tasks/tool-design-mcp/` (the Tool Design & MCP Integration domain's established type — see `.claude/skills/new-task/categories/mcp-server-tasks.md`). Each of these tasks is a real MCP server, not a script.
+Applies to every **MCP Server Task** under `tasks/tool-design-mcp/` (see `.claude/skills/new-task/categories/mcp-server-tasks.md`) — each of these is a real MCP server, not a script.
+
+**Exception:** `task-5-built-in-tool-selection` (and any future **Built-in Tool Task** — see `.claude/skills/new-task/categories/built-in-tool-tasks.md`) is not an MCP server at all. It uses its own hook-based tool-call logging instead — see that task's own README for how it works. None of this file's `claude mcp add`/logging guidance applies to it.
 
 ## Attaching a task's MCP server to local Claude Code
 

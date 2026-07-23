@@ -13,7 +13,7 @@ Each domain gets its own task **type** (the shape of artifact a task in that dom
 | Domain | Type | Confirmed by |
 |---|---|---|
 | Agentic Architecture & Orchestration | **Agentic Tool-Use Tasks** — a Python script exercising the Anthropic Messages API tool-use loop (`common/agent_loop.py`), verified by running it with `uv run` | `task-1` through `task-7` under `tasks/agentic-architecture/` |
-| Tool Design & MCP Integration | **MCP Server Tasks** — a real MCP server built with the official Python SDK, registered with Claude Code via `claude mcp add`, verified from a live `claude` terminal session | `task-1` under `tasks/tool-design-mcp/` |
+| Tool Design & MCP Integration | **MCP Server Tasks** — a real MCP server built with the official Python SDK, registered with Claude Code via `claude mcp add`, verified from a live `claude` terminal session. **Exception:** a task statement about Claude Code's own built-in tools (Read/Write/Edit/Bash/Grep/Glob), not MCP tool design, uses **Built-in Tool Tasks** instead — a sample codebase with no MCP server at all, verified the same way but against built-in tools. Don't assume every statement in this domain fits the MCP-server shape; check the statement's actual text first. | `task-1` through `task-4` under `tasks/tool-design-mcp/` (MCP Server Tasks); `task-5` (Built-in Tool Tasks) |
 | Claude Code Configuration & Workflows | **Claude Code Configuration & Workflow Tasks** — a sample project demonstrating a Claude Code configuration mechanism, verified via documented prompts in a live Claude Code session | `task-1` under `tasks/claude-code-workflows/` |
 | Prompt Engineering & Structured Output | **Not yet built.** Do not default to Agentic Tool-Use Tasks just because Agentic Architecture & Orchestration uses that shape — read this domain's actual Task Statement text and propose a type to the user fresh, the same way MCP Server Tasks was split out for Tool Design & MCP Integration. | — |
 | Context Management & Reliability | **Not yet built.** Same rule — decide the type fresh from the actual Task Statement text; do not carry over another domain's pattern by assumption. | — |
@@ -21,7 +21,8 @@ Each domain gets its own task **type** (the shape of artifact a task in that dom
 Each established type's full process (scenario proposal, folder scaffold, file layout, README template, verification, table update) lives in its own file under `categories/` — read the matching one before doing anything else:
 
 - [`categories/agent-loop-tasks.md`](categories/agent-loop-tasks.md) — Agentic Architecture & Orchestration
-- [`categories/mcp-server-tasks.md`](categories/mcp-server-tasks.md) — Tool Design & MCP Integration
+- [`categories/mcp-server-tasks.md`](categories/mcp-server-tasks.md) — Tool Design & MCP Integration (MCP Server Tasks)
+- [`categories/built-in-tool-tasks.md`](categories/built-in-tool-tasks.md) — Tool Design & MCP Integration, built-in-tools exception (Built-in Tool Tasks)
 - [`categories/claude-code-config-tasks.md`](categories/claude-code-config-tasks.md) — Claude Code Configuration & Workflows
 
 If a task in Prompt Engineering & Structured Output or Context Management & Reliability comes up and no category file exists for it yet: read that domain's Task Statement text, propose a fitting artifact shape to the user via `AskUserQuestion` (don't silently pick one), and — once confirmed — write a new `categories/<name>.md` file for it, following the shape of the three existing category files, before scaffolding the task itself.
