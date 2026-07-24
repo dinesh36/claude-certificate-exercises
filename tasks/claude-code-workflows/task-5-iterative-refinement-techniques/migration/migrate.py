@@ -6,6 +6,7 @@ worked out interactively. See this task's README for how.
 """
 import csv
 import json
+from pathlib import Path
 
 
 def normalize_phone(raw):
@@ -31,5 +32,5 @@ def migrate(csv_path):
 
 
 if __name__ == "__main__":
-    # Run from this task's root folder: python migration/migrate.py
-    print(json.dumps(migrate("data/legacy_customers_sample.csv"), indent=2))
+    csv_path = Path(__file__).resolve().parent.parent / "data" / "legacy_customers_sample.csv"
+    print(json.dumps(migrate(csv_path), indent=2))
