@@ -38,6 +38,7 @@ One row per completed task, added only once it's actually built and verified —
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-2 - Slash commands and skills](tasks/claude-code-workflows/task-2-slash-commands-and-skills/README.md) | A docs publishing monorepo with a project-scoped command and three configured skills |
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-3 - Path specific rules](tasks/claude-code-workflows/task-3-path-specific-rules/README.md) | A cross-platform mobile monorepo with a glob-scoped localization convention rule |
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-4 - Plan mode vs direct execution](tasks/claude-code-workflows/task-4-plan-mode-vs-direct-execution/README.md) | An e-commerce checkout service spanning simple, architectural, and discovery requests |
+| [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-5 - Iterative refinement techniques](tasks/claude-code-workflows/task-5-iterative-refinement-techniques/README.md) | A legacy CRM-to-JSON customer data migration script with an underspecified transform spec |
 
 ## Repository Layout
 
