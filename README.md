@@ -24,6 +24,7 @@ According to this [exam guide](./wiki/exam-guide.pdf) claude suggested few tasks
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-4 - Plan mode vs direct execution](tasks/claude-code-workflows/task-4-plan-mode-vs-direct-execution/README.md) | An e-commerce checkout service spanning simple, architectural, and discovery requests |
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-5 - Iterative refinement techniques](tasks/claude-code-workflows/task-5-iterative-refinement-techniques/README.md) | A legacy CRM-to-JSON customer data migration script with an underspecified transform spec |
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-1 - Explicit criteria precision](tasks/prompt-engineering/task-1-explicit-criteria-precision/README.md) | A healthcare patient-intake validator reviewed for comment-accuracy, bugs, and security |
+| [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-2 - Few shot consistency](tasks/prompt-engineering/task-2-few-shot-consistency/README.md) | A support-ticket triage prompt classifying tickets from a web form, chat, and email |
 
 # Setup
 
