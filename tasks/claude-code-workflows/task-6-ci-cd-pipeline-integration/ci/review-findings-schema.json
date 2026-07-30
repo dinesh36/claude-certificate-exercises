@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": {"type": "string"},
+          "line": {"type": "integer"},
+          "severity": {"type": "string", "enum": ["low", "medium", "high"]},
+          "description": {"type": "string"},
+          "status": {"type": "string", "enum": ["new", "still_open"]}
+        },
+        "required": ["file", "severity", "description", "status"]
+      }
+    }
+  },
+  "required": ["findings"]
+}

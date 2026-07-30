@@ -1,0 +1,11 @@
+{
+  "findings": [
+    {
+      "file": "billing/invoice.py",
+      "line": 17,
+      "severity": "high",
+      "description": "total_cents() docstring says it applies each line's discount_percent, but it just returns subtotal_cents() — discounted invoices overcharge the customer.",
+      "status": "new"
+    }
+  ]
+}
