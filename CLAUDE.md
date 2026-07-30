@@ -44,6 +44,7 @@ One row per completed task, added only once it's actually built and verified —
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-2 - Few shot consistency](tasks/prompt-engineering/task-2-few-shot-consistency/README.md) | A support-ticket triage prompt classifying tickets from a web form, chat, and email |
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-3 - Structured output tool schemas](tasks/prompt-engineering/task-3-structured-output-tool-schemas/README.md) | An accounting firm's document intake for invoices, purchase orders, and receipts of unknown type |
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-4 - Validation retry feedback loops](tasks/prompt-engineering/task-4-validation-retry-feedback-loops/README.md) | A bank statement extraction pipeline with retry-driven reconciliation |
+| [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-6 - Multi instance multi pass review](tasks/prompt-engineering/task-6-multi-instance-multi-pass-review/README.md) | A three-file notification dispatch system reviewed for self-review bias and cross-file bugs |
 
 ## Repository Layout
 
