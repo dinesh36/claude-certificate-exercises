@@ -43,6 +43,7 @@ One row per completed task, added only once it's actually built and verified —
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-1 - Explicit criteria precision](tasks/prompt-engineering/task-1-explicit-criteria-precision/README.md) | A healthcare patient-intake validator reviewed for comment-accuracy, bugs, and security |
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-2 - Few shot consistency](tasks/prompt-engineering/task-2-few-shot-consistency/README.md) | A support-ticket triage prompt classifying tickets from a web form, chat, and email |
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-3 - Structured output tool schemas](tasks/prompt-engineering/task-3-structured-output-tool-schemas/README.md) | An accounting firm's document intake for invoices, purchase orders, and receipts of unknown type |
+| [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-4 - Validation retry feedback loops](tasks/prompt-engineering/task-4-validation-retry-feedback-loops/README.md) | A bank statement extraction pipeline with retry-driven reconciliation |
 
 ## Repository Layout
 

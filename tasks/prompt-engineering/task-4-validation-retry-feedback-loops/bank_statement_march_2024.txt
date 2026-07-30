@@ -1,0 +1,31 @@
+FIRST HARBOR CREDIT UNION
+Monthly Account Statement
+
+Account Holder: J. Alvarez
+Account Number: ****4471
+Statement Period: March 1, 2024 - March 31, 2024
+
+Beginning Balance (03/01/2024): $2,450.00
+
+Date        Description                                Amount
+----        -----------                                ------
+03/03/2024  Debit Card Purchase - GREENLEAF GROCERY     -$86.42
+03/05/2024  Direct Deposit - ACME CORP PAYROLL        +$1,840.00
+03/07/2024  Debit Card Purchase - CITY TRANSIT AUTH      -$60.00
+03/09/2024  ACH Withdrawal - SUNVIEW APARTMENTS RENT  -$1,200.00
+03/12/2024  Debit Card Purchase - STARLIGHT CINEMA        -$32.50
+03/12/2024  Debit Card Purchase - STARLIGHT CINEMA        -$32.50
+03/15/2024  Wire Transfer Out - INTL SUPPLIER PMT        -$450.00
+            (ref: see wire confirmation on file)
+03/19/2024  Debit Card Purchase - CORNER HARDWARE         -$74.18
+03/24/2024  Debit Card Purchase - GREENLEAF GROCERY       -$91.33
+03/29/2024  Direct Deposit - ACME CORP PAYROLL         +$1,840.00
+04/02/2024  Debit Card Purchase - LAKEVIEW GAS STATION    -$52.10
+
+Ending Balance: $4,135.57
+
+Questions about this statement? Contact Member Services.
+This statement reflects transactions received through the print date.
+Duplicate line items may occur when a merchant submits an authorization
+hold separately from the final settlement; only settled charges affect
+your balance.
