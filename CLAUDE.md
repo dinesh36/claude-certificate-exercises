@@ -41,6 +41,7 @@ One row per completed task, added only once it's actually built and verified —
 | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows) | [Task-5 - Iterative refinement techniques](tasks/claude-code-workflows/task-5-iterative-refinement-techniques/README.md) | A legacy CRM-to-JSON customer data migration script with an underspecified transform spec |
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-1 - Explicit criteria precision](tasks/prompt-engineering/task-1-explicit-criteria-precision/README.md) | A healthcare patient-intake validator reviewed for comment-accuracy, bugs, and security |
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-2 - Few shot consistency](tasks/prompt-engineering/task-2-few-shot-consistency/README.md) | A support-ticket triage prompt classifying tickets from a web form, chat, and email |
+| [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-4 - Validation retry feedback loops](tasks/prompt-engineering/task-4-validation-retry-feedback-loops/README.md) | A bank statement extraction pipeline with retry-driven reconciliation |
 
 ## Repository Layout
 
