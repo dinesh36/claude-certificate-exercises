@@ -1,0 +1,41 @@
+name: Claude Code CI
+
+on:
+  pull_request:
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Review the PR diff
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p "Review this PR's diff against this repo's CLAUDE.md review criteria. \
+          ci/prior-findings.json lists issues already reported on an earlier run of this same PR — \
+          treat those as already known and set their status to still_open instead of reporting them again. \
+          Only give new findings a status of new." \
+            --output-format json \
+            --json-schema "$(cat ci/review-findings-schema.json)" \
+            > ci/review-findings.json
+
+      - name: Post new findings as inline PR comments
+        run: python ci/post_findings.py ci/review-findings.json
+
+  claude-test-gen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate missing test coverage
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p "Per this repo's CLAUDE.md testing standards, find any billing/ module with missing \
+          positive-case or edge-case coverage and write the missing tests. tests/ already has \
+          test_discounts.py and test_invoice.py — read them first and do not propose scenarios they \
+          already cover. Reuse tests/fixtures/sample_invoices.json rather than inventing new sample data." \
+            --output-format json \
+            > ci/test-gen-output.json

@@ -1,0 +1,17 @@
+{
+  "normal": {
+    "line_items": [
+      {"description": "Widget", "unit_price_cents": 500, "quantity": 3, "discount_percent": 0}
+    ]
+  },
+  "fully_discounted_line": {
+    "line_items": [
+      {"description": "Promo item", "unit_price_cents": 1000, "quantity": 1, "discount_percent": 100}
+    ]
+  },
+  "zero_quantity_line": {
+    "line_items": [
+      {"description": "Cancelled item", "unit_price_cents": 750, "quantity": 0, "discount_percent": 0}
+    ]
+  }
+}
