@@ -1,0 +1,49 @@
+{
+  "account_id": "CUST-48213",
+  "record_as_of": "2026-07-30",
+  "invoices": [
+    {
+      "invoice_id": "INV-772201",
+      "billing_period": "2026-04-01 to 2026-04-30",
+      "issued_date": "2026-05-01",
+      "plan_charge": 65.00,
+      "tax": 5.36,
+      "one_time_charges": [],
+      "amount_charged": 70.36,
+      "payment_status": "paid",
+      "paid_date": "2026-05-01"
+    },
+    {
+      "invoice_id": "INV-781944",
+      "billing_period": "2026-05-01 to 2026-05-31",
+      "issued_date": "2026-06-01",
+      "plan_charge": 65.00,
+      "tax": 5.36,
+      "one_time_charges": [
+        {"reason": "device_insurance_premium", "amount": 12.00}
+      ],
+      "amount_charged": 82.72,
+      "payment_status": "paid",
+      "paid_date": "2026-06-01"
+    },
+    {
+      "invoice_id": "INV-791820",
+      "billing_period": "2026-06-01 to 2026-06-30",
+      "issued_date": "2026-07-01",
+      "plan_charge": 65.00,
+      "tax": 5.36,
+      "one_time_charges": [
+        {"reason": "device_insurance_premium", "amount": 12.00},
+        {"reason": "plan_charge", "amount": 65.00, "note": "system billing error: plan fee applied twice this cycle"}
+      ],
+      "amount_charged": 147.36,
+      "expected_amount": 82.72,
+      "discrepancy_amount": 64.64,
+      "payment_status": "paid",
+      "paid_date": "2026-07-01",
+      "dispute_status": "open",
+      "dispute_ticket_id": "TCK-55031",
+      "dispute_filed_date": "2026-07-15"
+    }
+  ]
+}
