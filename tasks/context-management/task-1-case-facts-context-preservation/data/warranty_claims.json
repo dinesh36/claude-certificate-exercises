@@ -1,0 +1,20 @@
+{
+  "account_id": "CUST-48213",
+  "record_as_of": "2026-07-30",
+  "claims": [
+    {
+      "claim_id": "WAR-91002",
+      "device_imei": "889231445119",
+      "device_model": "Nova X12",
+      "purchase_date": "2024-09-18",
+      "warranty_plan": "TotalCare Premium",
+      "warranty_expiration": "2026-09-18",
+      "issue_reported": "screen unresponsive after minor drop, no visible cracking",
+      "date_filed": "2026-07-28",
+      "diagnostic_result": "digitizer failure, confirmed hardware defect covered under TotalCare Premium",
+      "replacement_eligibility": "eligible, $0 deductible under Premium tier",
+      "status": "approved_pending_shipment",
+      "estimated_ship_date": "2026-08-03"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "region": "Fairview, TX (zip 75001)",
+  "record_as_of": "2026-07-30",
+  "outages": [
+    {
+      "outage_id": "OUT-30982",
+      "affected_service": "5G data",
+      "start_time": "2026-07-22T14:10:00-05:00",
+      "end_time": "2026-07-22T19:45:00-05:00",
+      "duration_hours": 5.58,
+      "root_cause": "fiber backhaul cut, regional",
+      "customers_affected_estimate": 3400,
+      "credit_eligible": true,
+      "credit_policy_ref": "POLICY-OUTAGE-4H",
+      "credit_policy_note": "outages exceeding 4 continuous hours qualify for a prorated one-day service credit",
+      "linked_ticket_id": "TCK-55040",
+      "linked_ticket_filed_date": "2026-07-23",
+      "credit_amount": 2.17,
+      "credit_status": "pending_approval"
+    },
+    {
+      "outage_id": "OUT-30640",
+      "affected_service": "voice",
+      "start_time": "2026-06-11T08:00:00-05:00",
+      "end_time": "2026-06-11T08:40:00-05:00",
+      "duration_hours": 0.67,
+      "root_cause": "scheduled maintenance overrun",
+      "customers_affected_estimate": 900,
+      "credit_eligible": false,
+      "credit_policy_ref": "POLICY-OUTAGE-4H",
+      "credit_policy_note": "below 4-hour threshold, not eligible",
+      "linked_ticket_id": null
+    }
+  ]
+}
