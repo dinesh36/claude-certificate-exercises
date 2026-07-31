@@ -46,6 +46,7 @@ One row per completed task, added only once it's actually built and verified —
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-4 - Validation retry feedback loops](tasks/prompt-engineering/task-4-validation-retry-feedback-loops/README.md) | A bank statement extraction pipeline with retry-driven reconciliation |
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-5 - Batch processing strategies](tasks/prompt-engineering/task-5-batch-processing-strategies/README.md) | A legal team's weekly vendor-contract renewal-risk audit |
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-6 - Multi instance multi pass review](tasks/prompt-engineering/task-6-multi-instance-multi-pass-review/README.md) | A three-file notification dispatch system reviewed for self-review bias and cross-file bugs |
+| [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-2 - Escalation ambiguity resolution](tasks/context-management/task-2-escalation-ambiguity-resolution/README.md) | A hotel booking platform's support desk handling reservation disputes and cancellation requests |
 
 ## Repository Layout
 
