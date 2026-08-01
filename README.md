@@ -36,6 +36,13 @@ According to this [exam guide](./wiki/exam-guide.pdf) claude suggested few tasks
 | [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-5 - Stratified confidence calibration](tasks/context-management/task-5-stratified-confidence-calibration/README.md) | An HR platform's resume and video-interview screening pipeline |
 | [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-6 - Provenance preserving synthesis](tasks/context-management/task-6-provenance-preserving-synthesis/README.md) | A market-research coordinator synthesizing conflicting EV-adoption data across three sources |
 
+## Preparation Exercises
+
+Preparation Exercises ([`wiki/tasks/6-preparation-exercises.md`](wiki/tasks/6-preparation-exercises.md)) deliberately combine bullets from 2-3 domains at once, so they get their own table instead of a row above.
+
+| Task | Domains Reinforced | Topic |
+|---|---|---|
+
 # Setup
 
 This repository uses a single [uv](https://docs.astral.sh/uv/) project at the root for all tasks — dependencies and the shared [`common/`](./common) package are managed here, not per task.

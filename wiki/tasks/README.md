@@ -1,6 +1,6 @@
 # Tasks
 
-This section breaks down the exam domains and preparation tasks into separate files for easier navigation.
+This section breaks down the exam domains and preparation exercises into separate files for easier navigation.
 
 ## Domains
 
@@ -10,4 +10,4 @@ This section breaks down the exam domains and preparation tasks into separate fi
 - [Prompt Engineering & Structured Output](./4-prompt-engineering)
 - [Context Management & Reliability](./5-context-management)
 
-## [Preparation Tasks](./6-preparation-tasks)
+## [Preparation Exercises](./6-preparation-exercises)
