@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "game-ops": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "server.py"],
+      "env": { "GAMEOPS_API_KEY": "${GAMEOPS_API_KEY}" }
+    }
+  }
+}

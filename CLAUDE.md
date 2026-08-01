@@ -59,6 +59,7 @@ Preparation Exercises (`wiki/tasks/6-preparation-exercises.md`) deliberately com
 | Task | Domains Reinforced | Topic |
 |---|---|---|
 | [Exercise-1 - Multi tool agent escalation](preparation-exercises/exercise-1-multi-tool-agent-escalation/README.md) | [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture), [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp), [Context Management & Reliability](wiki/tasks/5-context-management) | A release-engineering agent for a software company's deployment pipeline |
+| [Exercise-2 - Team development workflow](preparation-exercises/exercise-2-team-development-workflow/README.md) | [Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows), [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp) | A multiplayer game backend monorepo's team-development configuration |
 
 ## Repository Layout
 
