@@ -1,0 +1,20 @@
+{
+  "sanctions_list": {
+    "mode": "ok",
+    "result_file": "sanctions_hit.json"
+  },
+  "news_sentiment_feed": {
+    "mode": "empty"
+  },
+  "credit_bureau": {
+    "mode": "transient",
+    "recovers_after_attempt": 3,
+    "result_file": "credit_bureau_result.json"
+  },
+  "litigation_records": {
+    "mode": "down",
+    "error_type": "access_revoked",
+    "detail": "litigation-records contract lapsed on 2026-06-30; the API key was deactivated and every call now returns 401.",
+    "alternative": "manual PACER / state court docket search for the vendor's legal name and known subsidiaries"
+  }
+}

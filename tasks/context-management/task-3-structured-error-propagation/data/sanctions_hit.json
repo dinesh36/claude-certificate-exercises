@@ -1,0 +1,9 @@
+{
+  "vendor": "Meridian Fabrication Co.",
+  "match_type": "affiliated_entity",
+  "matched_name": "Meridian Fabrication Holdings (Cyprus) Ltd.",
+  "list": "OFAC SDN-adjacent watchlist",
+  "match_confidence": "medium",
+  "date_listed": "2025-11-03",
+  "notes": "Matched via parent/subsidiary linkage, not the vendor's exact legal name."
+}
