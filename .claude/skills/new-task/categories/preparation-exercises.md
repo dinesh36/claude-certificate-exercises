@@ -52,18 +52,21 @@ Reuse each matching category file's own file-layout guidance for the step(s) it 
 
 <readme_template>
   <purpose>
-    Same purpose as every other category: prove, with real files pasted in, that every Step for this Preparation Exercise is genuinely exercised. Follow `SKILL.md`'s "README writing style" section for prose.
+    Same purpose as every other category: prove, with real files pasted in, that every Step for this Preparation Exercise is genuinely exercised. Follow `SKILL.md`'s "README writing style" section for prose. The four sections below are the whole README — no appended section for an individual domain (e.g. a "Domain 5 note") or any other extra section; if a domain's angle needs explaining, fold it into the relevant Step's Implementation Info entry (section 4) instead of a standalone section.
   </purpose>
 
   <section id="1" name="exercise_header">
     <format>
 # Preparation Exercise N: &lt;Title, copied verbatim from wiki/tasks/6-preparation-exercises.md&gt;
-&gt; **Objective:** &lt;copied verbatim&gt;
-&gt; **Domains reinforced:** &lt;copied verbatim, keep the original per-domain links&gt;
 
-Source: [`wiki/tasks/6-preparation-exercises.md`](../../wiki/tasks/6-preparation-exercises.md), Exercise N.
+**Objective:** &lt;copied verbatim&gt;
+
+**Steps:**
+1. &lt;copied verbatim&gt;
+2. &lt;copied verbatim&gt;
+...
     </format>
-    <rule>Copy the title, Objective, and Domains-reinforced line verbatim — do not paraphrase.</rule>
+    <rule>Copy the title, Objective, and every numbered Step verbatim — do not paraphrase. The Steps list belongs in the header, not just paraphrased inline next to each Implementation Info entry (section 4 below) — a reader should see the exercise's full source text before reaching any file-specific evidence. No Domains-reinforced line and no Source line in the header — just the title, Objective, and Steps.</rule>
   </section>
 
   <separator>---</separator>
