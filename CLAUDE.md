@@ -52,11 +52,19 @@ One row per completed task, added only once it's actually built and verified —
 | [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-5 - Stratified confidence calibration](tasks/context-management/task-5-stratified-confidence-calibration/README.md) | An HR platform's resume and video-interview screening pipeline |
 | [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-6 - Provenance preserving synthesis](tasks/context-management/task-6-provenance-preserving-synthesis/README.md) | A market-research coordinator synthesizing conflicting EV-adoption data across three sources |
 
+### Implemented Preparation Exercises
+
+Preparation Exercises (`wiki/tasks/6-preparation-exercises.md`) deliberately combine bullets from 2-3 domains at once, so they get their own table instead of a row in the per-domain one above — a single Domain-column cell can't represent a task spanning several domains. One row per completed Preparation Exercise, added only once it's actually built and verified — see the `new-task` skill's `categories/preparation-exercises.md` for how a task gets added here.
+
+| Task | Domains Reinforced | Topic |
+|---|---|---|
+
 ## Repository Layout
 
 - `wiki/exam-guide.pdf` — the certification exam guide (source material, do not edit).
-- `wiki/tasks/` — one Markdown file per domain (`1-agentic-architecture.md`, `2-tool-design-mcp.md`, `3-claude-code-workflows.md`, `4-prompt-engineering.md`, `5-context-management.md`), each broken into numbered `### Task Statement X.Y` sections with `Knowledge of` / `Skills in` bullets, plus `6-preparation-tasks.md` listing the tasks end to end. Treat these as reference material — quote from them, don't edit them as part of building a task.
+- `wiki/tasks/` — one Markdown file per domain (`1-agentic-architecture.md`, `2-tool-design-mcp.md`, `3-claude-code-workflows.md`, `4-prompt-engineering.md`, `5-context-management.md`), each broken into numbered `### Task Statement X.Y` sections with `Knowledge of` / `Skills in` bullets, plus `6-preparation-exercises.md` listing the cross-domain preparation exercises end to end. Treat these as reference material — quote from them, don't edit them as part of building a task.
 - `tasks/` — the practical implementations, one subfolder per domain, one folder per task inside that (see naming convention below).
+- `preparation-exercises/` — the practical implementations for cross-domain Preparation Exercises (`wiki/tasks/6-preparation-exercises.md`), one `exercise-<N>-<kebab-slug>` folder per exercise. Sits alongside `tasks/`, not nested inside it, since these exercises combine bullets from multiple domains rather than belonging to one. See the `new-task` skill's `categories/preparation-exercises.md`.
 - `common/` — the shared Python package (Anthropic client setup, the generic agentic tool-use loop, structured tool-error helpers, the shared formatted-JSON logging primitive, the MCP tool-call logging wrapper, a raw-`tool_use`-block reader for scripts that call `tools=`/`tool_choice=` directly instead of the agentic loop) reused across tasks. Installed editable into the root `uv` project, so any task script can `from common.x import y` regardless of nesting depth.
 - `logs/` — formatted (pretty-printed) JSON transcripts, one file per run, entries separated by a blank line: `logs/*.jsonl` from `common/agent_loop.py`'s agentic loop, `logs/mcp/*.jsonl` from `common/mcp_logging.py`'s MCP tool-call wrapper, `logs/sessions/*.json` from `common/session_store.py`.
 - `.claude/rules/` — topic-specific rule files that only load when working under a matching path (via YAML frontmatter `paths:` globs), instead of bloating this always-loaded file. See `.claude/rules/mcp-server-tasks.md` for the MCP-task attach/logging conventions.
@@ -78,6 +86,8 @@ Domain slugs (fixed — do not invent new ones):
 | 3 – Claude Code Configuration & Workflows | `claude-code-workflows` |
 | 4 – Prompt Engineering & Structured Output | `prompt-engineering` |
 | 5 – Context Management & Reliability | `context-management` |
+
+**Exception — Preparation Exercises:** a task scaffolded from `wiki/tasks/6-preparation-exercises.md` (not a single per-domain `Task Statement X.Y`) lives at `preparation-exercises/exercise-<N>-<kebab-slug>/` instead — a top-level folder, not nested under `tasks/`, using its own `exercise-<N>` numbering rather than the shared `task-<N>` prefix. `N` is that Preparation Exercise's own number in `6-preparation-exercises.md`, since these tasks are written to combine bullets from 2-3 domains at once rather than belong to exactly one. See the `new-task` skill's `categories/preparation-exercises.md` for the full process.
 
 Every task folder must contain a `README.md` documenting which task statement(s) it covers and mapping each `Knowledge of`/`Skills in` bullet to the file (by name only, never a line number/range — those drift) plus a pasted code snippet demonstrating it (see [`tasks/agentic-architecture/task-1-multi-tool-agent-escalation/README.md`](tasks/agentic-architecture/task-1-multi-tool-agent-escalation/README.md) for the canonical example). Code should be split into small per-concern modules (e.g. `main.py` entry point, `tools.py` schemas/implementations, `policy.py`/`normalize.py` hooks, `data.py` mock data) and reuse `common/` rather than duplicating client setup, the agentic loop, or error-shaping logic. Only add to `common/` when a capability is genuinely reusable across tasks, not task-specific logic.
 

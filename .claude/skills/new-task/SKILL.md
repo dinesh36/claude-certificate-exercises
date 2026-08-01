@@ -30,9 +30,11 @@ Each established type's full process (scenario proposal, folder scaffold, file l
 
 Every domain now has an established type. If a future task statement reveals that its established type genuinely doesn't fit (the same way Built-in Tool Tasks and Session Behavior Tasks were split out as exceptions within their domains), propose a fresh type to the user via `AskUserQuestion` and write a new `categories/<name>.md` file for it before scaffolding the task itself — don't silently force the statement into the existing shape.
 
-## 1. Gather inputs (shared across every type)
+**Preparation Exercises are the one category with no domain restriction.** Every category above covers exactly one domain's Task Statement; a Preparation Exercise, sourced from `wiki/tasks/6-preparation-exercises.md` instead of a per-domain file, is deliberately written to combine bullets from 2-3 domains at once. If the user is scaffolding a task from that file rather than from a numbered `Task Statement X.Y`, skip straight to [`categories/preparation-exercises.md`](categories/preparation-exercises.md) — it owns its own gather-inputs step and doesn't use the single-domain resolution below.
 
-Before writing anything, resolve:
+## 1. Gather inputs (shared across every domain-scoped type)
+
+Not for Preparation Exercises — that category resolves its own inputs in `categories/preparation-exercises.md` step 1. Before writing anything for a domain-scoped type, resolve:
 
 - **Task number (`N`) and title** — `<N>` is the second number of the Task Statement being covered (Task Statement `X.N` → `task-<N>`); numbering restarts at 1 within each domain. Check `tasks/<domain-slug>/` for the highest `task-<N>` already used in that domain and pick the next one. If the user hasn't named a specific Task Statement, ask which one (`X.Y`) the task targets.
 - **The single domain covered** — the one domain the targeted Task Statement belongs to. A task never covers more than one domain — if a design genuinely needs concerns from a second domain, that's two tasks, not one; stop and ask the user how to split it rather than tagging one task with both.

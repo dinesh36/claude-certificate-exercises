@@ -1,6 +1,6 @@
-# Preparation Tasks
+# Preparation Exercises
 
-### Task 1: Build a Multi-Tool Agent with Escalation Logic
+### Exercise 1: Build a Multi-Tool Agent with Escalation Logic
 
 **Objective:** Practice designing an agentic loop with tool integration, structured error handling, and escalation patterns.
 
@@ -15,7 +15,7 @@
 
 ---
 
-### Task 2: Configure Claude Code for a Team Development Workflow
+### Exercise 2: Configure Claude Code for a Team Development Workflow
 
 **Objective:** Practice configuring CLAUDE.md hierarchies, custom slash commands, path-specific rules, and MCP server integration for a multi-developer project.
 
@@ -30,7 +30,7 @@
 
 ---
 
-### Task 3: Build a Structured Data Extraction Pipeline
+### Exercise 3: Build a Structured Data Extraction Pipeline
 
 **Objective:** Practice designing JSON schemas, using tool_use for structured output, implementing validation-retry loops, and designing batch processing strategies.
 
@@ -45,7 +45,7 @@
 
 ---
 
-### Task 4: Design and Debug a Multi-Agent Research Pipeline
+### Exercise 4: Design and Debug a Multi-Agent Research Pipeline
 
 **Objective:** Practice orchestrating subagents, managing context passing, implementing error propagation, and handling synthesis with provenance tracking.
 
