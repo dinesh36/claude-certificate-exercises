@@ -49,6 +49,7 @@ One row per completed task, added only once it's actually built and verified —
 | [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-1 - Case facts context preservation](tasks/context-management/task-1-case-facts-context-preservation/README.md) | A telecom support coordinator preserving case facts across a multi-issue customer conversation |
 | [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-2 - Escalation ambiguity resolution](tasks/context-management/task-2-escalation-ambiguity-resolution/README.md) | A hotel booking platform's support desk handling reservation disputes and cancellation requests |
 | [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-3 - Structured error propagation](tasks/context-management/task-3-structured-error-propagation/README.md) | A supply-chain vendor-risk-assessment coordinator handling failing, empty, and recovering data sources |
+| [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-5 - Stratified confidence calibration](tasks/context-management/task-5-stratified-confidence-calibration/README.md) | An HR platform's resume and video-interview screening pipeline |
 | [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-6 - Provenance preserving synthesis](tasks/context-management/task-6-provenance-preserving-synthesis/README.md) | A market-research coordinator synthesizing conflicting EV-adoption data across three sources |
 
 ## Repository Layout
