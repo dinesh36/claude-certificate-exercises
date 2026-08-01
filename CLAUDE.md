@@ -48,6 +48,7 @@ One row per completed task, added only once it's actually built and verified —
 | [Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering) | [Task-6 - Multi instance multi pass review](tasks/prompt-engineering/task-6-multi-instance-multi-pass-review/README.md) | A three-file notification dispatch system reviewed for self-review bias and cross-file bugs |
 | [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-1 - Case facts context preservation](tasks/context-management/task-1-case-facts-context-preservation/README.md) | A telecom support coordinator preserving case facts across a multi-issue customer conversation |
 | [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-2 - Escalation ambiguity resolution](tasks/context-management/task-2-escalation-ambiguity-resolution/README.md) | A hotel booking platform's support desk handling reservation disputes and cancellation requests |
+| [Context Management & Reliability](wiki/tasks/5-context-management) | [Task-5 - Stratified confidence calibration](tasks/context-management/task-5-stratified-confidence-calibration/README.md) | An HR platform's resume and video-interview screening pipeline |
 
 ## Repository Layout
 
