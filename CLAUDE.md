@@ -58,6 +58,7 @@ Preparation Exercises (`wiki/tasks/6-preparation-exercises.md`) deliberately com
 
 | Task | Domains Reinforced | Topic |
 |---|---|---|
+| [Exercise-1 - Multi tool agent escalation](preparation-exercises/exercise-1-multi-tool-agent-escalation/README.md) | [Agentic Architecture & Orchestration](wiki/tasks/1-agentic-architecture), [Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp), [Context Management & Reliability](wiki/tasks/5-context-management) | A release-engineering agent for a software company's deployment pipeline |
 
 ## Repository Layout
 
