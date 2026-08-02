@@ -144,7 +144,7 @@ Only after step 5 actually passes. Add one row to **both** `CLAUDE.md`'s `### Im
 
 | Domain | Task | Topic |
 |---|---|---|
-| `[Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering)` | `[Task-<N> - <Small Description>](tasks/prompt-engineering/task-<N>-<kebab-slug>/README.md)` | `<topic>` |
+| `[Prompt Engineering & Structured Output](wiki/tasks/4-prompt-engineering.md)` | `[Task-<N> - <Small Description>](tasks/prompt-engineering/task-<N>-<kebab-slug>/README.md)` | `<topic>` |
 
 - **Task** column's `<Small Description>` is the `<kebab-slug>` from step 2, de-hyphenated into sentence case (e.g. `validation-retry-feedback-loops` → `Validation retry feedback loops`).
 - **Topic** — one line, 10 words max, naming the fictional document/review scenario, pulled from the task's own README `# Subject` section.

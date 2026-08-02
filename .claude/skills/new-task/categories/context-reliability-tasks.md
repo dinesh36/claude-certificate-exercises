@@ -143,7 +143,7 @@ Identical to every other type's table-update step — same table format, same co
 
 | Domain | Task | Topic |
 |---|---|---|
-| `[Context Management & Reliability](wiki/tasks/5-context-management)` | `[Task-<N> - <Small Description>](tasks/context-management/task-<N>-<kebab-slug>/README.md)` | `<topic>` |
+| `[Context Management & Reliability](wiki/tasks/5-context-management.md)` | `[Task-<N> - <Small Description>](tasks/context-management/task-<N>-<kebab-slug>/README.md)` | `<topic>` |
 
 - **Task** column's `<Small Description>` is the `<kebab-slug>` from step 3, de-hyphenated into sentence case.
 - **Topic** is the scenario's fictional shape, pulled from the task's own README `# Subject` section.

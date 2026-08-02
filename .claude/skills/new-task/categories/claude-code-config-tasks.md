@@ -118,7 +118,7 @@ Identical to Agentic Tool-Use Tasks' step 6 — same table format, same columns,
 
 | Domain | Task | Topic |
 |---|---|---|
-| `[Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows)` | `[Task-<N> - <Small Description>](tasks/claude-code-workflows/task-<N>-<kebab-slug>/README.md)` | `<topic>` |
+| `[Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows.md)` | `[Task-<N> - <Small Description>](tasks/claude-code-workflows/task-<N>-<kebab-slug>/README.md)` | `<topic>` |
 
 - **Task** column's `<Small Description>` is the `<kebab-slug>` from step 2 (the configuration mechanism, never the scenario), de-hyphenated into sentence case.
 - **Topic** is the sample project's fictional shape (e.g. "A two-package Python monorepo with divergent per-package conventions"), pulled from the task's own README `# Subject` section.

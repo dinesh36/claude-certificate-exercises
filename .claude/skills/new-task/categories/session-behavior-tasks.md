@@ -128,7 +128,7 @@ Identical to every other type's table-update step — same table format, same co
 
 | Domain | Task | Topic |
 |---|---|---|
-| `[Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows)` | `[Task-<N> - <Small Description>](tasks/claude-code-workflows/task-<N>-<kebab-slug>/README.md)` | `<topic>` |
+| `[Claude Code Configuration & Workflows](wiki/tasks/3-claude-code-workflows.md)` | `[Task-<N> - <Small Description>](tasks/claude-code-workflows/task-<N>-<kebab-slug>/README.md)` | `<topic>` |
 
 - **Task** column's `<Small Description>` is the `<kebab-slug>` from step 2, de-hyphenated into sentence case.
 - **Topic** is the sample codebase's fictional shape, pulled from the task's own README `# Subject` section.

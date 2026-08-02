@@ -149,7 +149,7 @@ Identical to every other type's table-update step — same table format, same co
 
 | Domain | Task | Topic |
 |---|---|---|
-| `[Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp)` | `[Task-<N> - <Small Description>](tasks/tool-design-mcp/task-<N>-<kebab-slug>/README.md)` | `<topic>` |
+| `[Tool Design & MCP Integration](wiki/tasks/2-tool-design-mcp.md)` | `[Task-<N> - <Small Description>](tasks/tool-design-mcp/task-<N>-<kebab-slug>/README.md)` | `<topic>` |
 
 - **Task** column's `<Small Description>` is the `<kebab-slug>` from step 2 (the tool-design mechanism, never the scenario), de-hyphenated into sentence case.
 - **Topic** is the scenario's fictional shape, pulled from the task's own README `# Subject` section.
